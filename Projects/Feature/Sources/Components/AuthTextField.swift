@@ -10,6 +10,7 @@ struct AuthTextField: View {
     var scale: CGFloat = 1
 
     @State private var isRevealed = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6 * scale) {
@@ -37,8 +38,10 @@ struct AuthTextField: View {
                 Group {
                     if isSecure && !isRevealed {
                         SecureField("", text: $text)
+                            .focused($isFocused)
                     } else {
                         TextField("", text: $text)
+                            .focused($isFocused)
                     }
                 }
                 .font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 14 * scale))
@@ -49,8 +52,16 @@ struct AuthTextField: View {
 
             if isSecure {
                 Button(action: {
+                    let wasFocused = isFocused
+
                     withAnimation(.easeInOut(duration: 0.12)) {
                         isRevealed.toggle()
+                    }
+
+                    if wasFocused {
+                        DispatchQueue.main.async {
+                            isFocused = true
+                        }
                     }
                 }) {
                     ZStack {
