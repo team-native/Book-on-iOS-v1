@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+
+      - name: Cache Tuist
+        uses: actions/cache@v4
+        with:
+          path: ~/.tuist/Cache
+          key: ${{ runner.os }}-tuist-${{ hashFiles('mise.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-tuist-
+
+      - name: Install dependencies
+        run: tuist install
+
+      - name: Generate project
+        run: tuist generate --no-open
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -workspace Book-on-iOS-V1.xcworkspace \
+            -scheme Book-on-iOS-V1 \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
