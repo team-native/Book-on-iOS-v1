@@ -29,6 +29,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-tuist-
 
+      - name: Install xcpretty
+        run: gem install xcpretty
+
       - name: Install dependencies
         run: tuist install
 
