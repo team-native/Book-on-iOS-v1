@@ -3,6 +3,7 @@ import SwiftUI
 struct PrimaryButton: View {
     let title: String
     var scale: CGFloat = 1
+    var isEnabled: Bool = true
     let action: () -> Void
 
     var body: some View {
@@ -18,4 +19,3 @@ struct PrimaryButton: View {
         .buttonStyle(.plain)
     }
 }
-
