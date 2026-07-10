@@ -65,15 +65,15 @@ public struct LoginView: View {
                     icon: "envelope",
                     placeholder: "이메일 주소",
                     text: $email,
+                    suffix: "@gsm.hs.kr",
                     errorMessage: emailError,
                     showsInlineCaption: false,
-                    scale: scale,
-                    suffix: "@gsm.hs.kr",
                     keyboardType: .asciiCapable,
                     maxLength: 6,
                     allowsSchoolEmailPrefix: true,
                     fieldWidth: 331,
-                    horizontalPadding: 18
+                    horizontalPadding: 18,
+                    scale: scale
                 )
                 .offset(x: 31 * scale, y: 285 * scale)
 
