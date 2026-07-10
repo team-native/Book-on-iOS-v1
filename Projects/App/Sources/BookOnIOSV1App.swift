@@ -12,12 +12,21 @@ struct BookOnIOSV1App: App {
 
 struct RootView: View {
     @State private var isSplashFinished = false
+    @State private var isSigningUp = false
 
     var body: some View {
-        if isSplashFinished {
-            LoginView()
-        } else {
-            SplashView(onFinished: { isSplashFinished = true })
+        ZStack {
+            if !isSplashFinished {
+                SplashView(onFinished: { isSplashFinished = true })
+            } else {
+                NavigationStack {
+                    LoginView(onSignUp: { isSigningUp = true })
+                        .navigationDestination(isPresented: $isSigningUp) {
+                            SignUpFlowView(onFinished: { isSigningUp = false })
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
+                }
+            }
         }
     }
 }
