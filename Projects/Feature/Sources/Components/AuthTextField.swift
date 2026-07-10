@@ -14,7 +14,9 @@ struct AuthTextField: View {
     var keyboardType: UIKeyboardType = .default
     var maxLength: Int? = nil
     var allowsOnlyNumbers = false
+    var allowsSchoolEmailPrefix = false
     var fieldWidth: CGFloat = 300
+    var horizontalPadding: CGFloat = 16
     var scale: CGFloat = 1
 
     @State private var isRevealed = false
@@ -22,13 +24,11 @@ struct AuthTextField: View {
     @StateObject private var keyboard = KeyboardObserver()
     @FocusState private var isFocused: Bool
 
-<<<<<<< Updated upstream:Projects/Feature/Sources/Components/AuthTextField.swift
-=======
     private var isFieldFocused: Bool {
         isFocused || isLimitedFieldFocused
     }
 
-    private var sanitizedText: Binding<String> {
+    private var sanitizedTextBinding: Binding<String> {
         Binding(
             get: { text },
             set: { newValue in
@@ -77,7 +77,6 @@ struct AuthTextField: View {
         return result
     }
 
->>>>>>> Stashed changes:Projects/Feature/Sources/Components/Inputs/AuthTextField.swift
     var body: some View {
         VStack(alignment: .leading, spacing: 6 * scale) {
             if let label {
@@ -119,8 +118,6 @@ struct AuthTextField: View {
                     if isSecure && !isRevealed {
                         SecureField("", text: sanitizedTextBinding)
                             .focused($isFocused)
-<<<<<<< Updated upstream:Projects/Feature/Sources/Components/AuthTextField.swift
-=======
                     } else if usesLimitedInput {
                         LimitedTextField(
                             text: $text,
@@ -132,7 +129,6 @@ struct AuthTextField: View {
                             fontSize: 14 * scale
                         )
                         .frame(height: 30 * scale)
->>>>>>> Stashed changes:Projects/Feature/Sources/Components/Inputs/AuthTextField.swift
                     } else {
                         TextField("", text: sanitizedTextBinding)
                             .focused($isFocused)
@@ -198,7 +194,7 @@ struct AuthTextField: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 16 * scale)
+        .padding(.horizontal, horizontalPadding * scale)
         .frame(width: fieldWidth * scale, height: 52 * scale)
         .background(errorMessage == nil ? Color.white : FeatureAsset.Color.errorBackground.swiftUIColor)
         .cornerRadius(16 * scale)
@@ -212,22 +208,5 @@ struct AuthTextField: View {
                     }
             }
         }
-    }
-
-    private func sanitize(_ value: String) -> String {
-        var sanitized = allowsOnlyNumbers ? value.filter { $0.isNumber } : value
-
-        if let maxLength {
-            sanitized = String(sanitized.prefix(maxLength))
-        }
-
-        return sanitized
-    }
-
-    private var sanitizedTextBinding: Binding<String> {
-        Binding(
-            get: { text },
-            set: { text = sanitize($0) }
-        )
     }
 }
