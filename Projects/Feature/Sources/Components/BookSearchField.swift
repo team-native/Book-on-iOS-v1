@@ -6,11 +6,12 @@ struct BookSearchField: View {
     var scale: CGFloat = 1
     var onSubmit: () -> Void = {}
     var onClear: (() -> Void)?
+    var onSearch: () -> Void = {}
     var body: some View {
         HStack {
             TextField("도서 찾기", text: $text).font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 12 * scale)).onSubmit(onSubmit)
             Spacer()
-            Button(action: { onClear?() }) {
+            Button(action: { onClear == nil ? onSearch() : onClear?() }) {
                 Image(systemName: onClear == nil ? "magnifyingglass" : "xmark")
                     .font(.system(size: 13 * scale, weight: .bold))
                     .foregroundColor(onClear == nil ? FeatureAsset.Color.buttonColor.swiftUIColor : .black)

@@ -2,8 +2,9 @@ import SwiftUI
 
 public struct SearchView: View {
     @State private var query = ""
+    @State private var didSearch = false
 
-    private var hasResults: Bool { query.localizedCaseInsensitiveContains("클린") }
+    private var hasResults: Bool { didSearch && query.localizedCaseInsensitiveContains("클린") }
 
     public init() {}
 
@@ -23,8 +24,12 @@ public struct SearchView: View {
                     text: $query,
                     width: 344,
                     scale: scale,
-                    onSubmit: {},
-                    onClear: query.isEmpty ? nil : { query = "" }
+                    onSubmit: { didSearch = true },
+                    onClear: query.isEmpty ? nil : {
+                        query = ""
+                        didSearch = false
+                    },
+                    onSearch: { didSearch = true }
                 )
                 .offset(x: 24 * scale, y: 123 * scale)
 
