@@ -3,6 +3,7 @@ import SwiftUI
 public struct MyView: View {
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var isMarathonLinked = false
+    @State private var showsNotificationSettings = false
     public init() {}
     public var body: some View {
         GeometryReader { geo in
@@ -27,7 +28,9 @@ public struct MyView: View {
                 marathonCard(scale: scale).offset(x: 23 * scale, y: 288 * scale)
                 VStack(spacing: 0) {
                     ForEach(menuItems, id: \.self) { item in
-                        NavigationMenuRow(title: item, scale: scale, action: {})
+                        NavigationMenuRow(title: item, scale: scale, action: {
+                            if item == "알림 설정" { showsNotificationSettings = true }
+                        })
                         Divider()
                     }
                     NavigationMenuRow(title: "로그아웃", isDestructive: true, scale: scale, action: {})
@@ -35,7 +38,9 @@ public struct MyView: View {
                 Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
                 BottomTabBar(selected: .my, scale: scale, action: { _ in }).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
-        }.ignoresSafeArea()
+        }
+        .ignoresSafeArea()
+        .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
     }
     private func marathonCard(scale: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
