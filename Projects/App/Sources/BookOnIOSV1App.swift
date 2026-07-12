@@ -20,7 +20,7 @@ struct RootView: View {
             if !isSplashFinished {
                 SplashView(onFinished: { isSplashFinished = true })
             } else if isSignedIn {
-                MainHomeView()
+                AppShellView()
             } else {
                 NavigationStack {
                     LoginView(

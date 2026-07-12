@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct BottomTabBar: View {
-    enum Item: CaseIterable { case home, ranking, library, my
+public struct BottomTabBar: View {
+    public enum Item: CaseIterable, Hashable { case home, ranking, library, my
         var title: String { ["홈", "랭킹", "도서실", "마이"][index] }
         var icon: String { ["house", "chart.bar", "rectangle.stack", "person"][index] }
         private var index: Int { switch self { case .home: 0; case .ranking: 1; case .library: 2; case .my: 3 } }
@@ -11,7 +11,13 @@ struct BottomTabBar: View {
     var scale: CGFloat = 1
     let action: (Item) -> Void
 
-    var body: some View {
+    public init(selected: Item, scale: CGFloat = 1, action: @escaping (Item) -> Void) {
+        self.selected = selected
+        self.scale = scale
+        self.action = action
+    }
+
+    public var body: some View {
         HStack(spacing: 0) {
             ForEach(Item.allCases, id: \.self) { item in
                 Button { action(item) } label: {

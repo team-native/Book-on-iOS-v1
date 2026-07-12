@@ -3,10 +3,18 @@ import SwiftUI
 public struct LibraryView: View {
     @State private var category = "전체"
     @State private var sortByPopularity = true
+    private let onSelectTab: (BottomTabBar.Item) -> Void
+    private let onShowBookDetail: () -> Void
     private let categories = ["전체", "소설", "과학", "역사", "개발"]
     private let books = [("프로젝트 헤일메리", "앤디 위어"), ("괴테는 모든 것을 말했다", "스즈키 유이"), ("인간 실격", "다자이 오사무"), ("급류", "정대건")]
 
-    public init() {}
+    public init(
+        onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
+        onShowBookDetail: @escaping () -> Void = {}
+    ) {
+        self.onSelectTab = onSelectTab
+        self.onShowBookDetail = onShowBookDetail
+    }
 
     public var body: some View {
         GeometryReader { geo in
@@ -22,7 +30,7 @@ public struct LibraryView: View {
                 }.offset(x: 23 * scale, y: 118 * scale)
                 bookGrid(scale: scale)
                     .offset(x: 23 * scale, y: 170 * scale)
-                BottomTabBar(selected: .library, scale: scale, action: { _ in }).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
+                BottomTabBar(selected: .library, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }.ignoresSafeArea()
     }
@@ -37,10 +45,10 @@ public struct LibraryView: View {
 
     private func bookGrid(scale: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
-            LibraryBookCard(title: books[0].0, author: books[0].1, scale: scale)
-            LibraryBookCard(title: books[1].0, author: books[1].1, scale: scale).offset(x: 186 * scale)
-            LibraryBookCard(title: books[2].0, author: books[2].1, scale: scale).offset(y: 298 * scale)
-            LibraryBookCard(title: books[3].0, author: books[3].1, scale: scale).offset(x: 186 * scale, y: 298 * scale)
+            LibraryBookCard(title: books[0].0, author: books[0].1, scale: scale, action: onShowBookDetail)
+            LibraryBookCard(title: books[1].0, author: books[1].1, scale: scale, action: onShowBookDetail).offset(x: 186 * scale)
+            LibraryBookCard(title: books[2].0, author: books[2].1, scale: scale, action: onShowBookDetail).offset(y: 298 * scale)
+            LibraryBookCard(title: books[3].0, author: books[3].1, scale: scale, action: onShowBookDetail).offset(x: 186 * scale, y: 298 * scale)
         }
         .frame(width: 352 * scale, height: 532 * scale, alignment: .topLeading)
     }
@@ -53,8 +61,9 @@ private struct LibraryBookCard: View {
     let title: String
     let author: String
     let scale: CGFloat
+    let action: () -> Void
     var body: some View {
-        Button(action: {}) {
+        Button(action: action) {
             VStack(alignment: .leading, spacing: 0) {
                 BookThumbnail(width: 166, height: 234, scale: scale, action: {})
                     .background(Color(red: 248/255, green: 248/255, blue: 248/255))

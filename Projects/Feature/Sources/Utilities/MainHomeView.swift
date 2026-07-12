@@ -2,8 +2,22 @@ import SwiftUI
 
 public struct MainHomeView: View {
     @State private var searchText = ""
+    private let onSelectTab: (BottomTabBar.Item) -> Void
+    private let onShowSearch: () -> Void
+    private let onShowNewArrivals: () -> Void
+    private let onShowBookDetail: () -> Void
 
-    public init() {}
+    public init(
+        onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
+        onShowSearch: @escaping () -> Void = {},
+        onShowNewArrivals: @escaping () -> Void = {},
+        onShowBookDetail: @escaping () -> Void = {}
+    ) {
+        self.onSelectTab = onSelectTab
+        self.onShowSearch = onShowSearch
+        self.onShowNewArrivals = onShowNewArrivals
+        self.onShowBookDetail = onShowBookDetail
+    }
 
     public var body: some View {
         GeometryReader { geo in
@@ -15,7 +29,7 @@ public struct MainHomeView: View {
                 header(scale: scale)
                     .offset(x: 27 * scale, y: 66 * scale)
 
-                BookSearchField(text: $searchText, scale: scale)
+                BookSearchField(text: $searchText, scale: scale, onSearch: onShowSearch)
                     .offset(x: 27 * scale, y: 136 * scale)
 
                 Button(action: {}) { noticeCard(scale: scale) }
@@ -29,14 +43,14 @@ public struct MainHomeView: View {
                     Text("우리 학교 인기 책")
                         .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
                     Spacer()
-                    Button("더보기", action: {})
+                    Button("더보기", action: onShowNewArrivals)
                         .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                         .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
                 }
                 .frame(width: 338 * scale)
                 .offset(x: 27 * scale, y: 742 * scale)
 
-                BottomTabBar(selected: .home, scale: scale, action: { _ in })
+                BottomTabBar(selected: .home, scale: scale, action: onSelectTab)
                     .offset(y: 763 * scale)
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
@@ -57,7 +71,7 @@ public struct MainHomeView: View {
                     .padding(.top, 5 * scale)
             }
 
-            Button(action: {}) {
+            Button(action: { onSelectTab(.my) }) {
                 Image(systemName: "bell")
                     .font(.system(size: 17 * scale, weight: .medium))
                     .foregroundColor(.black)
@@ -74,7 +88,7 @@ public struct MainHomeView: View {
             .buttonStyle(.plain)
             .offset(x: 256 * scale, y: 10 * scale)
 
-            Button(action: {}) {
+            Button(action: { onSelectTab(.my) }) {
                 Image(systemName: "person.fill")
                     .font(.system(size: 18 * scale))
                     .foregroundColor(.white)
@@ -153,7 +167,7 @@ public struct MainHomeView: View {
             .background(LinearGradient(colors: [Color(red: 147/255, green: 210/255, blue: 52/255), Color(red: 116/255, green: 163/255, blue: 46/255)], startPoint: .topLeading, endPoint: .bottomTrailing))
             .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
             .offset(x: 68 * scale)
-            Button("더보기", action: {})
+            Button("더보기", action: onShowNewArrivals)
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor).offset(x: 310 * scale, y: 2 * scale)
             bookSlot(title: "나미야 잡화점의 기적", author: "히가시노 게이고", scale: scale).offset(x: 1 * scale, y: 56 * scale)
             bookSlot(title: "아몬드", author: "손원평", scale: scale).offset(x: 152 * scale, y: 56 * scale)
@@ -163,7 +177,7 @@ public struct MainHomeView: View {
     }
 
     private func bookSlot(title: String, author: String, scale: CGFloat) -> some View {
-        Button(action: {}) { VStack(alignment: .leading, spacing: 0) {
+        Button(action: onShowBookDetail) { VStack(alignment: .leading, spacing: 0) {
             BookThumbnail(scale: scale, action: {})
             Text(title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).lineLimit(2).frame(width: 118 * scale, alignment: .leading).padding(.top, 18 * scale)
             Text(author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255)).padding(.top, 4 * scale)
