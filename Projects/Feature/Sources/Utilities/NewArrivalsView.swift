@@ -13,13 +13,9 @@ public struct NewArrivalsView: View {
                         .padding(.top, 90 * scale)
                         .padding(.leading, 44 * scale)
                     if isLoading {
-                        LazyVGrid(columns: [GridItem(.fixed(132 * scale), spacing: 40 * scale), GridItem(.fixed(132 * scale))], spacing: 85 * scale) {
-                            ForEach(0..<6, id: \.self) { _ in BookCardSkeleton(scale: scale) }
-                        }
-                        .padding(.top, 39 * scale)
-                        .padding(.leading, 44 * scale)
+                        bookGrid(scale: scale, isAnimating: true)
                     } else {
-                        Color.clear.frame(height: max(geo.size.height - (130 * scale), 0))
+                        bookGrid(scale: scale, isAnimating: false)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,6 +27,17 @@ public struct NewArrivalsView: View {
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             isLoading = false
         }
+    }
+
+    private func bookGrid(scale: CGFloat, isAnimating: Bool) -> some View {
+        LazyVGrid(columns: [GridItem(.fixed(132 * scale), spacing: 40 * scale), GridItem(.fixed(132 * scale))], spacing: 85 * scale) {
+            ForEach(0..<6, id: \.self) { _ in
+                BookCardSkeleton(scale: scale, isAnimating: isAnimating)
+            }
+        }
+        .frame(width: 304 * scale, alignment: .leading)
+        .padding(.top, 39 * scale)
+        .padding(.leading, 44 * scale)
     }
 }
 
