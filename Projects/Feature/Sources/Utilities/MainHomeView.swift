@@ -15,7 +15,7 @@ public struct MainHomeView: View {
                 header(scale: scale)
                     .offset(x: 27 * scale, y: 66 * scale)
 
-                searchField(scale: scale)
+                BookSearchField(text: $searchText, scale: scale)
                     .offset(x: 27 * scale, y: 136 * scale)
 
                 Button(action: {}) { noticeCard(scale: scale) }
@@ -36,7 +36,7 @@ public struct MainHomeView: View {
                 .frame(width: 338 * scale)
                 .offset(x: 27 * scale, y: 742 * scale)
 
-                bottomBar(scale: scale)
+                BottomTabBar(selected: .home, scale: scale, action: { _ in })
                     .offset(y: 763 * scale)
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
@@ -86,25 +86,6 @@ public struct MainHomeView: View {
                 .offset(x: 304 * scale, y: 10 * scale)
         }
         .frame(width: 340 * scale, height: 50 * scale, alignment: .topLeading)
-    }
-
-    private func searchField(scale: CGFloat) -> some View {
-        HStack {
-            TextField("도서 찾기", text: $searchText)
-                .font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 12 * scale))
-                .foregroundColor(.black)
-                .onSubmit {}
-            Spacer()
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 13 * scale, weight: .medium))
-                .foregroundColor(Color(red: 183 / 255, green: 183 / 255, blue: 183 / 255))
-        }
-        .padding(.horizontal, 12 * scale)
-        .frame(width: 340 * scale, height: 42 * scale)
-        .background(Color.white)
-        .overlay(RoundedRectangle(cornerRadius: 16 * scale).stroke(Color(red: 140 / 255, green: 140 / 255, blue: 140 / 255), lineWidth: 0.4 * scale))
-        .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
-        .shadow(color: .black.opacity(0.1), radius: 3 * scale, x: 1 * scale, y: 1 * scale)
     }
 
     private func noticeCard(scale: CGFloat) -> some View {
@@ -183,35 +164,13 @@ public struct MainHomeView: View {
 
     private func bookSlot(title: String, author: String, scale: CGFloat) -> some View {
         Button(action: {}) { VStack(alignment: .leading, spacing: 0) {
-            Color.clear.frame(width: 94 * scale, height: 160 * scale)
+            BookThumbnail(scale: scale, action: {})
             Text(title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).lineLimit(2).frame(width: 118 * scale, alignment: .leading).padding(.top, 18 * scale)
             Text(author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255)).padding(.top, 4 * scale)
         } }
         .buttonStyle(.plain)
     }
 
-    private func bottomBar(scale: CGFloat) -> some View {
-        HStack(spacing: 0) {
-            tab(icon: "house", title: "홈", selected: true, scale: scale)
-            tab(icon: "chart.bar", title: "랭킹", selected: false, scale: scale)
-            tab(icon: "rectangle.stack", title: "도서실", selected: false, scale: scale)
-            tab(icon: "person", title: "마이", selected: false, scale: scale)
-        }
-        .frame(width: 392 * scale, height: 89 * scale)
-        .background(Color(red: 254/255, green: 254/255, blue: 254/255))
-        .overlay(alignment: .top) { Rectangle().fill(Color(red: 241/255, green: 241/255, blue: 240/255)).frame(height: 1) }
-    }
-
-    private func tab(icon: String, title: String, selected: Bool, scale: CGFloat) -> some View {
-        Button(action: {}) { VStack(spacing: 5 * scale) {
-            Image(systemName: icon).font(.system(size: 21 * scale, weight: selected ? .semibold : .regular))
-            Text(title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
-        }
-        .foregroundColor(selected ? FeatureAsset.Color.buttonColor.swiftUIColor : Color(red: 176/255, green: 176/255, blue: 181/255))
-        .frame(width: 98 * scale, height: 59 * scale)
-        .padding(.top, 10 * scale) }
-        .buttonStyle(.plain)
-    }
 }
 
 struct MainHomeView_Previews: PreviewProvider {
