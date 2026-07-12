@@ -2,15 +2,29 @@ import SwiftUI
 
 public struct NewArrivalsView: View {
     @State private var isLoading = true
-    public init() {}
+    private let onDismiss: () -> Void
+    private let showsDismissButton: Bool
+
+    public init(
+        showsDismissButton: Bool = false,
+        onDismiss: @escaping () -> Void = {}
+    ) {
+        self.showsDismissButton = showsDismissButton
+        self.onDismiss = onDismiss
+    }
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
             ScrollView(showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
+                    if showsDismissButton {
+                        AppBackButton(scale: scale, action: onDismiss)
+                            .padding(.leading, 23 * scale)
+                            .padding(.top, 56 * scale)
+                    }
                     Text("최근 새로 들어온 도서")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 20 * scale))
-                        .padding(.top, 90 * scale)
+                        .padding(.top, showsDismissButton ? 30 * scale : 90 * scale)
                         .padding(.leading, 44 * scale)
                     if isLoading {
                         bookGrid(scale: scale, isAnimating: true)

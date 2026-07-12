@@ -3,10 +3,21 @@ import SwiftUI
 public struct SearchView: View {
     @State private var query = ""
     @State private var didSearch = false
+    private let onShowBookDetail: () -> Void
+    private let showsDismissButton: Bool
+    private let onDismiss: () -> Void
 
     private var hasResults: Bool { didSearch && query.localizedCaseInsensitiveContains("클린") }
 
-    public init() {}
+    public init(
+        onShowBookDetail: @escaping () -> Void = {},
+        showsDismissButton: Bool = false,
+        onDismiss: @escaping () -> Void = {}
+    ) {
+        self.onShowBookDetail = onShowBookDetail
+        self.showsDismissButton = showsDismissButton
+        self.onDismiss = onDismiss
+    }
 
     public var body: some View {
         GeometryReader { geo in
@@ -19,6 +30,11 @@ public struct SearchView: View {
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale))
                     .foregroundColor(.black)
                     .offset(x: 23 * scale, y: 62 * scale)
+
+                if showsDismissButton {
+                    AppBackButton(scale: scale, action: onDismiss)
+                        .offset(x: 330 * scale, y: 62 * scale)
+                }
 
                 BookSearchField(
                     text: $query,
@@ -53,10 +69,10 @@ public struct SearchView: View {
                 .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
 
             VStack(spacing: 16 * scale) {
-                SearchBookRow(title: "클린 코드", stock: 2, scale: scale)
-                SearchBookRow(title: "클린 아키텍처", stock: 0, scale: scale)
-                SearchBookRow(title: "클린 코더", stock: 1, scale: scale)
-                SearchBookRow(title: "클린 소프트웨어", stock: 3, scale: scale)
+                SearchBookRow(title: "클린 코드", stock: 2, scale: scale, action: onShowBookDetail)
+                SearchBookRow(title: "클린 아키텍처", stock: 0, scale: scale, action: onShowBookDetail)
+                SearchBookRow(title: "클린 코더", stock: 1, scale: scale, action: onShowBookDetail)
+                SearchBookRow(title: "클린 소프트웨어", stock: 3, scale: scale, action: onShowBookDetail)
             }
             .padding(.top, 22 * scale)
         }
@@ -81,9 +97,10 @@ private struct SearchBookRow: View {
     let title: String
     let stock: Int
     let scale: CGFloat
+    let action: () -> Void
 
     var body: some View {
-        Button(action: {}) {
+        Button(action: action) {
             HStack(spacing: 16 * scale) {
                 BookThumbnail(width: 54, height: 68, scale: scale, action: {})
                     .background(Color(red: 241/255, green: 241/255, blue: 244/255))

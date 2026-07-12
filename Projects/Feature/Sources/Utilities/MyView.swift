@@ -6,7 +6,11 @@ public struct MyView: View {
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
-    public init() {}
+    private let onSelectTab: (BottomTabBar.Item) -> Void
+
+    public init(onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in }) {
+        self.onSelectTab = onSelectTab
+    }
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
@@ -40,7 +44,7 @@ public struct MyView: View {
                     NavigationMenuRow(title: "로그아웃", isDestructive: true, scale: scale, action: {})
                 }.frame(width: 346 * scale).offset(x: 23 * scale, y: 426 * scale)
                 Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
-                BottomTabBar(selected: .my, scale: scale, action: { _ in }).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
+                BottomTabBar(selected: .my, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()

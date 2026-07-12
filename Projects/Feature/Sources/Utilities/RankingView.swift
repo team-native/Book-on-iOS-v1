@@ -3,8 +3,11 @@ import SwiftUI
 public struct RankingView: View {
     @State private var refreshCount = 0
     @State private var selectedPlayer: RankingPlayer?
+    private let onSelectTab: (BottomTabBar.Item) -> Void
 
-    public init() {}
+    public init(onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in }) {
+        self.onSelectTab = onSelectTab
+    }
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
@@ -14,7 +17,7 @@ public struct RankingView: View {
                 Text("2026년 · 대출 권수 기준 · 매년 1월 1일 초기화").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255)).offset(x: 26 * scale, y: 110 * scale)
                 podium(scale: scale).offset(x: 28 * scale, y: 166 * scale)
                 rankingList(scale: scale).offset(x: 25 * scale, y: 406 * scale)
-                BottomTabBar(selected: .ranking, scale: scale, action: { _ in }).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
+                BottomTabBar(selected: .ranking, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()
