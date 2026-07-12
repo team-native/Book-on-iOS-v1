@@ -55,15 +55,15 @@ public struct SignUpEntryView: View {
                             icon: "envelope",
                             placeholder: "이메일 주소",
                             text: $emailPrefix,
+                            suffix: "@gsm.hs.kr",
                             errorMessage: emailError,
                             showsInlineCaption: true,
-                            scale: scale,
-                            suffix: "@gsm.hs.kr",
                             keyboardType: .asciiCapable,
                             maxLength: 6,
                             allowsSchoolEmailPrefix: true,
                             fieldWidth: 331,
-                            horizontalPadding: 18
+                            horizontalPadding: 18,
+                            scale: scale
                         )
 
                         SignUpFieldTitle("이름", scale: scale)
@@ -74,9 +74,9 @@ public struct SignUpEntryView: View {
                             text: $name,
                             errorMessage: nameError,
                             showsInlineCaption: true,
-                            scale: scale,
                             fieldWidth: 331,
-                            horizontalPadding: 18
+                            horizontalPadding: 18,
+                            scale: scale
                         )
 
                         SignUpFieldTitle("성별", scale: scale)
@@ -581,9 +581,9 @@ private struct AccountInfoStepView: View {
                     isSecure: true,
                     errorMessage: passwordError,
                     showsInlineCaption: true,
-                    scale: scale,
                     fieldWidth: 331,
-                    horizontalPadding: 18
+                    horizontalPadding: 18,
+                    scale: scale
                 )
 
                 SignUpFieldTitle("확인", scale: scale)
@@ -595,9 +595,9 @@ private struct AccountInfoStepView: View {
                     isSecure: true,
                     errorMessage: passwordConfirmError,
                     showsInlineCaption: true,
-                    scale: scale,
                     fieldWidth: 331,
-                    horizontalPadding: 18
+                    horizontalPadding: 18,
+                    scale: scale
                 )
 
                 AgreementBox(
@@ -783,9 +783,9 @@ private struct ReadingMarathonStepView: View {
                     isSecure: true,
                     errorMessage: marathonPasswordError,
                     showsInlineCaption: true,
-                    scale: scale,
                     fieldWidth: 331,
-                    horizontalPadding: 18
+                    horizontalPadding: 18,
+                    scale: scale
                 )
 
                 ThirdPartyAgreementView(
