@@ -6,8 +6,9 @@ struct RankingListRow: View {
     let detail: String
     let count: String
     var scale: CGFloat = 1
+    var action: () -> Void = {}
     var body: some View {
-        HStack(spacing: 14 * scale) {
+        Button(action: action) { HStack(spacing: 14 * scale) {
             Text("\(rank)").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).frame(width: 20 * scale)
             ProfileAvatar(scale: scale)
             VStack(alignment: .leading, spacing: 3 * scale) {
@@ -17,6 +18,7 @@ struct RankingListRow: View {
             Spacer()
             Text(count).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
         }
-        .frame(height: 63 * scale)
+        .frame(height: 63 * scale) }
+        .buttonStyle(.plain)
     }
 }
