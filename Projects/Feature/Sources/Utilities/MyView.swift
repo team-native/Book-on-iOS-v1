@@ -5,6 +5,7 @@ public struct MyView: View {
     @State private var isMarathonLinked = false
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
+    @State private var showsFavorites = false
     public init() {}
     public var body: some View {
         GeometryReader { geo in
@@ -32,6 +33,7 @@ public struct MyView: View {
                         NavigationMenuRow(title: item, scale: scale, action: {
                             if item == "알림 설정" { showsNotificationSettings = true }
                             if item == "대출 / 반납 내역" { showsLoanHistory = true }
+                            if item == "즐겨찾기 목록" { showsFavorites = true }
                         })
                         Divider()
                     }
@@ -45,6 +47,9 @@ public struct MyView: View {
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
         .fullScreenCover(isPresented: $showsLoanHistory) {
             LoanHistoryView(onBack: { showsLoanHistory = false })
+        }
+        .fullScreenCover(isPresented: $showsFavorites) {
+            FavoritesView(onBack: { showsFavorites = false })
         }
     }
     private func marathonCard(scale: CGFloat) -> some View {
