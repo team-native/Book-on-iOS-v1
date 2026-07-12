@@ -4,6 +4,7 @@ public struct MyView: View {
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var isMarathonLinked = false
     @State private var showsNotificationSettings = false
+    @State private var showsLoanHistory = false
     public init() {}
     public var body: some View {
         GeometryReader { geo in
@@ -30,6 +31,7 @@ public struct MyView: View {
                     ForEach(menuItems, id: \.self) { item in
                         NavigationMenuRow(title: item, scale: scale, action: {
                             if item == "알림 설정" { showsNotificationSettings = true }
+                            if item == "대출 / 반납 내역" { showsLoanHistory = true }
                         })
                         Divider()
                     }
@@ -41,6 +43,9 @@ public struct MyView: View {
         }
         .ignoresSafeArea()
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
+        .fullScreenCover(isPresented: $showsLoanHistory) {
+            LoanHistoryView(onBack: { showsLoanHistory = false })
+        }
     }
     private func marathonCard(scale: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {

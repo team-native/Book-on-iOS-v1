@@ -3,13 +3,17 @@ import SwiftUI
 public struct LoanHistoryView: View {
     private enum Filter { case borrowing, returned, all }
     @State private var filter: Filter = .borrowing
-    public init() {}
+    private let onBack: () -> Void
+
+    public init(onBack: @escaping () -> Void = {}) {
+        self.onBack = onBack
+    }
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
             ZStack(alignment: .topLeading) {
                 Color.white
-                AppBackButton(scale: scale, action: {}).offset(x: 25 * scale, y: 64 * scale)
+                AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 64 * scale)
                 Text("대출 / 반납 내역").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 146 * scale, y: 74 * scale)
                 HStack(spacing: 10 * scale) {
                     FilterChip(title: "대출 중 2", isSelected: filter == .borrowing, scale: scale, action: { filter = .borrowing })
