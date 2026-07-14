@@ -13,6 +13,7 @@ public struct AppShellView: View {
 
     @State private var selectedTab: BottomTabBar.Item = .home
     @State private var destination: Destination?
+    @State private var searchQuery = ""
 
     public init() {}
 
@@ -22,7 +23,10 @@ public struct AppShellView: View {
             case .home:
                 MainHomeView(
                     onSelectTab: selectTab,
-                    onShowSearch: { destination = .search },
+                    onShowSearch: { query in
+                        searchQuery = query
+                        destination = .search
+                    },
                     onShowNotifications: { destination = .notifications },
                     onShowNewArrivals: { destination = .newArrivals },
                     onShowBookDetail: { destination = .bookDetail }
@@ -42,6 +46,7 @@ public struct AppShellView: View {
             switch destination {
             case .search:
                 SearchView(
+                    initialQuery: searchQuery,
                     onShowBookDetail: { self.destination = .bookDetail },
                     showsDismissButton: true,
                     onDismiss: dismissDestination
