@@ -1,8 +1,8 @@
 import SwiftUI
 
 public struct SearchView: View {
-    @State private var query = ""
-    @State private var didSearch = false
+    @State private var query: String
+    @State private var didSearch: Bool
     @State private var showsEmptyQueryAlert = false
     private let onShowBookDetail: () -> Void
     private let showsDismissButton: Bool
@@ -11,10 +11,14 @@ public struct SearchView: View {
     private var hasResults: Bool { didSearch && query.localizedCaseInsensitiveContains("클린") }
 
     public init(
+        initialQuery: String = "",
         onShowBookDetail: @escaping () -> Void = {},
         showsDismissButton: Bool = false,
         onDismiss: @escaping () -> Void = {}
     ) {
+        let normalizedQuery = initialQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        _query = State(initialValue: normalizedQuery)
+        _didSearch = State(initialValue: !normalizedQuery.isEmpty)
         self.onShowBookDetail = onShowBookDetail
         self.showsDismissButton = showsDismissButton
         self.onDismiss = onDismiss
