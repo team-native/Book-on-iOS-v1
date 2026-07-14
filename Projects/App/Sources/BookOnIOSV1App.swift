@@ -17,6 +17,21 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-showAccountInfo") {
+                SignUpFlowView(startsAtAccountStep: true)
+            } else {
+                appContent
+            }
+            #else
+            appContent
+            #endif
+        }
+    }
+
+    @ViewBuilder
+    private var appContent: some View {
+        ZStack {
             if !isSplashFinished {
                 SplashView(onFinished: { isSplashFinished = true })
             } else if isSignedIn {

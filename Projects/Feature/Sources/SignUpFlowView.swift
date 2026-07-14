@@ -2,11 +2,15 @@ import SwiftUI
 
 public struct SignUpFlowView: View {
     @State private var info = SignUpAccountInfo()
-    @State private var currentStep: SignUpFlowStep = .school
+    @State private var currentStep: SignUpFlowStep
 
     private let onFinished: () -> Void
 
-    public init(onFinished: @escaping () -> Void = {}) {
+    public init(
+        startsAtAccountStep: Bool = false,
+        onFinished: @escaping () -> Void = {}
+    ) {
+        _currentStep = State(initialValue: startsAtAccountStep ? .account : .school)
         self.onFinished = onFinished
     }
 
