@@ -32,7 +32,12 @@ public struct MainHomeView: View {
                 header(scale: scale)
                     .offset(x: 27 * scale, y: 66 * scale)
 
-                BookSearchField(text: $searchText, scale: scale, onSearch: onShowSearch)
+                BookSearchField(
+                    text: $searchText,
+                    scale: scale,
+                    onSearch: onShowSearch,
+                    onActivate: onShowSearch
+                )
                     .offset(x: 27 * scale, y: 136 * scale)
 
                 Button(action: {}) { noticeCard(scale: scale) }

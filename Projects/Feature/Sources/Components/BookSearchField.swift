@@ -7,6 +7,7 @@ struct BookSearchField: View {
     var onSubmit: () -> Void = {}
     var onClear: (() -> Void)?
     var onSearch: () -> Void = {}
+    var onActivate: (() -> Void)?
     var body: some View {
         HStack {
             TextField("도서 찾기", text: $text).font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 12 * scale)).onSubmit(onSubmit)
@@ -21,5 +22,16 @@ struct BookSearchField: View {
         .padding(.horizontal, 12 * scale).frame(width: width * scale, height: 42 * scale)
         .background(Color.white).overlay(RoundedRectangle(cornerRadius: 16 * scale).stroke(Color(red: 140/255, green: 140/255, blue: 140/255), lineWidth: 0.4 * scale))
         .clipShape(RoundedRectangle(cornerRadius: 16 * scale)).shadow(color: .black.opacity(0.1), radius: 3 * scale, x: scale, y: scale)
+        .overlay {
+            if let onActivate {
+                Button(action: onActivate) {
+                    Color.clear
+                        .contentShape(RoundedRectangle(cornerRadius: 16 * scale))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("도서 찾기")
+                .accessibilityHint("검색 화면을 엽니다")
+            }
+        }
     }
 }
