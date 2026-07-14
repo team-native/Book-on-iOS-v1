@@ -6,7 +6,7 @@ struct SignUpStep2View: View {
     let onNext: () -> Void
 
     @State private var isTermsExpanded = false
-    @State private var isPasswordHintShown = ProcessInfo.processInfo.arguments.contains("-showPasswordHint")
+    @State private var isPasswordHintShown = false
     @State private var passwordError: String?
     @State private var confirmError: String?
     @StateObject private var keyboard = KeyboardObserver()
