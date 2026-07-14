@@ -2,16 +2,15 @@ import SwiftUI
 
 public struct MainHomeView: View {
     @State private var searchText = ""
-    @State private var showsEmptySearchAlert = false
     private let onSelectTab: (BottomTabBar.Item) -> Void
-    private let onShowSearch: (String) -> Void
+    private let onShowSearch: () -> Void
     private let onShowNotifications: () -> Void
     private let onShowNewArrivals: () -> Void
     private let onShowBookDetail: () -> Void
 
     public init(
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
-        onShowSearch: @escaping (String) -> Void = { _ in },
+        onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
         onShowBookDetail: @escaping () -> Void = {}
@@ -36,11 +35,8 @@ public struct MainHomeView: View {
                 BookSearchField(
                     text: $searchText,
                     scale: scale,
-                    onSubmit: {},
-                    onClear: searchText.isEmpty ? nil : {
-                        searchText = ""
-                    },
-                    onSearch: performSearch
+                    onSearch: onShowSearch,
+                    onActivate: onShowSearch
                 )
                     .offset(x: 27 * scale, y: 136 * scale)
 
@@ -68,19 +64,6 @@ public struct MainHomeView: View {
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()
-        .alert("검색할 책을 입력해주세요!", isPresented: $showsEmptySearchAlert) {
-            Button("확인", role: .cancel) {}
-        }
-    }
-
-    private func performSearch() {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else {
-            showsEmptySearchAlert = true
-            return
-        }
-
-        onShowSearch(query)
     }
 
     private func header(scale: CGFloat) -> some View {
