@@ -3,6 +3,7 @@ import SwiftUI
 public struct SearchView: View {
     @State private var query = ""
     @State private var didSearch = false
+    @State private var showsEmptyQueryAlert = false
     private let onShowBookDetail: () -> Void
     private let showsDismissButton: Bool
     private let onDismiss: () -> Void
@@ -40,12 +41,12 @@ public struct SearchView: View {
                     text: $query,
                     width: 344,
                     scale: scale,
-                    onSubmit: { didSearch = true },
+                    onSubmit: {},
                     onClear: query.isEmpty ? nil : {
                         query = ""
                         didSearch = false
                     },
-                    onSearch: { didSearch = true }
+                    onSearch: performSearch
                 )
                 .offset(x: 24 * scale, y: 123 * scale)
 
@@ -60,6 +61,19 @@ public struct SearchView: View {
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()
+        .alert("검색할 책을 입력해주세요!", isPresented: $showsEmptyQueryAlert) {
+            Button("확인", role: .cancel) {}
+        }
+    }
+
+    private func performSearch() {
+        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            didSearch = false
+            showsEmptyQueryAlert = true
+            return
+        }
+
+        didSearch = true
     }
 
     private func results(scale: CGFloat) -> some View {
