@@ -4,6 +4,7 @@ import SwiftUI
 public struct AppShellView: View {
     private enum Destination: String, Identifiable {
         case search
+        case notifications
         case newArrivals
         case bookDetail
 
@@ -22,6 +23,7 @@ public struct AppShellView: View {
                 MainHomeView(
                     onSelectTab: selectTab,
                     onShowSearch: { destination = .search },
+                    onShowNotifications: { destination = .notifications },
                     onShowNewArrivals: { destination = .newArrivals },
                     onShowBookDetail: { destination = .bookDetail }
                 )
@@ -44,6 +46,8 @@ public struct AppShellView: View {
                     showsDismissButton: true,
                     onDismiss: dismissDestination
                 )
+            case .notifications:
+                NotificationInboxView(onDismiss: dismissDestination)
             case .newArrivals:
                 NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination)
             case .bookDetail:

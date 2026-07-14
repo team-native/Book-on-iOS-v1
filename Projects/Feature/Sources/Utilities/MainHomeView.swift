@@ -4,17 +4,20 @@ public struct MainHomeView: View {
     @State private var searchText = ""
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onShowSearch: () -> Void
+    private let onShowNotifications: () -> Void
     private let onShowNewArrivals: () -> Void
     private let onShowBookDetail: () -> Void
 
     public init(
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowSearch: @escaping () -> Void = {},
+        onShowNotifications: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
         onShowBookDetail: @escaping () -> Void = {}
     ) {
         self.onSelectTab = onSelectTab
         self.onShowSearch = onShowSearch
+        self.onShowNotifications = onShowNotifications
         self.onShowNewArrivals = onShowNewArrivals
         self.onShowBookDetail = onShowBookDetail
     }
@@ -71,7 +74,7 @@ public struct MainHomeView: View {
                     .padding(.top, 5 * scale)
             }
 
-            Button(action: { onSelectTab(.my) }) {
+            Button(action: onShowNotifications) {
                 Image(systemName: "bell")
                     .font(.system(size: 17 * scale, weight: .medium))
                     .foregroundColor(.black)
