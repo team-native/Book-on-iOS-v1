@@ -1,9 +1,8 @@
 import SwiftUI
 
 struct PasswordHintButton: View {
+    @Binding var isShown: Bool
     var scale: CGFloat = 1
-
-    @State private var isShown = false
 
     var body: some View {
         Button(action: {
@@ -27,16 +26,13 @@ struct PasswordHintButton: View {
         }
         .buttonStyle(.plain)
         .contentShape(Rectangle())
-        .overlay(alignment: .topTrailing) {
-            if isShown {
-                hintBubble
-                    .offset(x: -20 * scale, y: 28 * scale)
-                    .zIndex(10)
-            }
-        }
     }
+}
 
-    private var hintBubble: some View {
+struct PasswordHintBubble: View {
+    var scale: CGFloat = 1
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 4 * scale) {
             Text("비밀번호 유의사항")
                 .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 13 * scale))

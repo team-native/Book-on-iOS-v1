@@ -6,6 +6,7 @@ struct SignUpStep2View: View {
     let onNext: () -> Void
 
     @State private var isTermsExpanded = false
+    @State private var isPasswordHintShown = false
     @State private var passwordError: String?
     @State private var confirmError: String?
     @StateObject private var keyboard = KeyboardObserver()
@@ -27,16 +28,26 @@ struct SignUpStep2View: View {
             ZStack(alignment: .topLeading) {
                 FeatureAsset.Color.background.swiftUIColor
                     .contentShape(Rectangle())
-                    .onTapGesture { hideKeyboard() }
+                    .onTapGesture {
+                        hideKeyboard()
+                        isPasswordHintShown = false
+                    }
 
                 SignUpProgressBar(currentStep: 2, scale: scale)
                     .frame(width: 333 * scale, alignment: .leading)
                     .offset(x: 30 * scale, y: 131 * scale)
 
-                PasswordHintButton(scale: scale)
+                PasswordHintButton(isShown: $isPasswordHintShown, scale: scale)
                     .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
                     .offset(x: 250 * scale, y: 74 * scale)
                     .zIndex(50)
+
+                if isPasswordHintShown {
+                    PasswordHintBubble(scale: scale)
+                        .offset(x: 164 * scale, y: 104 * scale)
+                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .topTrailing)))
+                        .zIndex(49)
+                }
 
                 VStack(alignment: .leading, spacing: 8 * scale) {
                     Text("계정 정보")
