@@ -14,6 +14,7 @@ public struct SignUpEntryView: View {
     @State private var isReadingMarathonLinked = false
     @State private var readingMarathonSubstep: ReadingMarathonSubstep = .intro
     @State private var isVerificationSentAlertPresented = false
+    @State private var isPasswordHintShown = false
     @StateObject private var keyboard = KeyboardObserver()
 
     public init() {}
@@ -138,11 +139,17 @@ public struct SignUpEntryView: View {
                         filledStep: progressStep,
                         scale: scale,
                         buttonY: buttonY,
+                        isPasswordHintShown: $isPasswordHintShown,
                         onCompleted: {
                             move(to: .readingMarathon)
                         }
                     )
                     .offset(x: 31 * scale, y: 18 * scale)
+                    .alert("비밀번호 유의사항", isPresented: $isPasswordHintShown) {
+                        Button("확인", role: .cancel) {}
+                    } message: {
+                        Text("영문 대·소문자와 숫자를 포함하여 6~15자로 입력해주세요.")
+                    }
                 } else if currentStep == .readingMarathon {
                     ReadingMarathonStepView(
                         email: "\(emailPrefix)@gsm.hs.kr",
@@ -547,6 +554,7 @@ private struct AccountInfoStepView: View {
     let filledStep: Int
     let scale: CGFloat
     let buttonY: CGFloat
+    @Binding var isPasswordHintShown: Bool
     let onCompleted: () -> Void
 
     @State private var password = ""
@@ -561,6 +569,11 @@ private struct AccountInfoStepView: View {
     var body: some View {
         Group {
             StepHeader(step: 2, filledStep: filledStep, scale: scale)
+
+            PasswordHintButton(isShown: $isPasswordHintShown, scale: scale)
+                .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
+                .offset(x: 219 * scale, y: 56 * scale)
+                .zIndex(10)
 
             Text("계정 정보")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 28 * scale))

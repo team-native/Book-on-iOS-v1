@@ -6,6 +6,7 @@ struct SignUpStep2View: View {
     let onNext: () -> Void
 
     @State private var isTermsExpanded = false
+    @State private var isPasswordHintShown = false
     @State private var passwordError: String?
     @State private var confirmError: String?
     @StateObject private var keyboard = KeyboardObserver()
@@ -33,10 +34,35 @@ struct SignUpStep2View: View {
                     .frame(width: 333 * scale, alignment: .leading)
                     .offset(x: 30 * scale, y: 131 * scale)
 
-                PasswordHintButton(scale: scale)
+                PasswordHintButton(isShown: $isPasswordHintShown, scale: scale)
                     .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
                     .offset(x: 250 * scale, y: 74 * scale)
-                    .zIndex(50)
+                    .zIndex(101)
+
+                if isPasswordHintShown {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.22)) {
+                                isPasswordHintShown = false
+                            }
+                        }
+                        .zIndex(99)
+
+                    PasswordHintBubble(scale: scale)
+                        .offset(x: 207 * scale, y: 99 * scale)
+                        .transition(
+                            .asymmetric(
+                                insertion: .opacity.combined(
+                                    with: .scale(scale: 0.96, anchor: .topTrailing)
+                                ),
+                                removal: .opacity
+                                    .combined(with: .scale(scale: 0.72, anchor: .topTrailing))
+                                    .combined(with: .offset(x: 54 * scale, y: -12 * scale))
+                            )
+                        )
+                        .zIndex(100)
+                }
 
                 VStack(alignment: .leading, spacing: 8 * scale) {
                     Text("계정 정보")
