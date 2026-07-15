@@ -5,26 +5,41 @@ struct PasswordHintButton: View {
     var scale: CGFloat = 1
 
     var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.22)) {
-                isShown.toggle()
-            }
-        }) {
-            HStack(spacing: 4 * scale) {
-                Text("비밀번호 주의사항")
-                    .font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 10 * scale))
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
+        ZStack(alignment: .topTrailing) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.22)) {
+                    isShown.toggle()
+                }
+            }) {
+                HStack(spacing: 4 * scale) {
+                    Text("비밀번호 주의사항")
+                        .font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 10 * scale))
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
 
-                Image(systemName: "info.circle")
-                    .font(.system(size: 12 * scale))
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 12 * scale))
+                }
+                .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
+                .opacity(0.4)
+                .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
+                .contentShape(Rectangle())
             }
-            .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
-            .opacity(0.4)
-            .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            if isShown {
+                PasswordHintBubble(scale: scale)
+                    .offset(y: 25 * scale)
+                    .allowsHitTesting(false)
+                    .transition(
+                        .opacity.combined(
+                            with: .scale(scale: 0.96, anchor: .topTrailing)
+                        )
+                    )
+                    .zIndex(1)
+            }
         }
-        .buttonStyle(.plain)
+        .frame(width: 118 * scale, height: 32 * scale, alignment: .topTrailing)
         .contentShape(Rectangle())
     }
 }

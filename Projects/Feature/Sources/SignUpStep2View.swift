@@ -39,31 +39,6 @@ struct SignUpStep2View: View {
                     .offset(x: 250 * scale, y: 74 * scale)
                     .zIndex(101)
 
-                if isPasswordHintShown {
-                    Color.clear
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.22)) {
-                                isPasswordHintShown = false
-                            }
-                        }
-                        .zIndex(99)
-
-                    PasswordHintBubble(scale: scale)
-                        .offset(x: 207 * scale, y: 99 * scale)
-                        .transition(
-                            .asymmetric(
-                                insertion: .opacity.combined(
-                                    with: .scale(scale: 0.96, anchor: .topTrailing)
-                                ),
-                                removal: .opacity
-                                    .combined(with: .scale(scale: 0.72, anchor: .topTrailing))
-                                    .combined(with: .offset(x: 54 * scale, y: -12 * scale))
-                            )
-                        )
-                        .zIndex(100)
-                }
-
                 VStack(alignment: .leading, spacing: 8 * scale) {
                     Text("계정 정보")
                         .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale))
