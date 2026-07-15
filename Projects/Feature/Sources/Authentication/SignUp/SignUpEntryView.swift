@@ -145,11 +145,6 @@ public struct SignUpEntryView: View {
                         }
                     )
                     .offset(x: 31 * scale, y: 18 * scale)
-                    .alert("비밀번호 유의사항", isPresented: $isPasswordHintShown) {
-                        Button("확인", role: .cancel) {}
-                    } message: {
-                        Text("영문 대·소문자와 숫자를 포함하여 6~15자로 입력해주세요.")
-                    }
                 } else if currentStep == .readingMarathon {
                     ReadingMarathonStepView(
                         email: "\(emailPrefix)@gsm.hs.kr",
@@ -573,7 +568,7 @@ private struct AccountInfoStepView: View {
             PasswordHintButton(isShown: $isPasswordHintShown, scale: scale)
                 .frame(width: 118 * scale, height: 32 * scale, alignment: .trailing)
                 .offset(x: 219 * scale, y: 56 * scale)
-                .zIndex(10)
+                .zIndex(101)
 
             Text("계정 정보")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 28 * scale))

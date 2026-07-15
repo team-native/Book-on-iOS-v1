@@ -70,7 +70,7 @@ struct AgreementAccordion: View {
                     }
             }
         }
-        .frame(height: 220 * scale)
+        .frame(height: 180 * scale)
     }
 
     private func detailSection(title: String, body: String) -> some View {
