@@ -62,6 +62,9 @@ public struct APIClient: Sendable {
 
             if endpoint.requiresAuthorization && httpResponse.statusCode == 401 {
                 try? tokenStore.deleteAll()
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: AuthSessionEvent.didExpire, object: nil)
+                }
                 throw NetworkError.sessionExpired(message: errorResponse?.message)
             }
 

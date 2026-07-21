@@ -6,10 +6,16 @@ public struct MyView: View {
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
+    @State private var showsLogoutConfirmation = false
     private let onSelectTab: (BottomTabBar.Item) -> Void
+    private let onLogout: () -> Void
 
-    public init(onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in }) {
+    public init(
+        onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
+        onLogout: @escaping () -> Void = {}
+    ) {
         self.onSelectTab = onSelectTab
+        self.onLogout = onLogout
     }
     public var body: some View {
         GeometryReader { geo in
@@ -41,7 +47,12 @@ public struct MyView: View {
                         })
                         Divider()
                     }
-                    NavigationMenuRow(title: "로그아웃", isDestructive: true, scale: scale, action: {})
+                    NavigationMenuRow(
+                        title: "로그아웃",
+                        isDestructive: true,
+                        scale: scale,
+                        action: { showsLogoutConfirmation = true }
+                    )
                 }.frame(width: 346 * scale).offset(x: 23 * scale, y: 426 * scale)
                 Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
                 BottomTabBar(selected: .my, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
@@ -54,6 +65,10 @@ public struct MyView: View {
         }
         .fullScreenCover(isPresented: $showsFavorites) {
             FavoritesView(onBack: { showsFavorites = false })
+        }
+        .alert("로그아웃하시겠어요?", isPresented: $showsLogoutConfirmation) {
+            Button("취소", role: .cancel) {}
+            Button("로그아웃", role: .destructive, action: onLogout)
         }
     }
     private func marathonCard(scale: CGFloat) -> some View {

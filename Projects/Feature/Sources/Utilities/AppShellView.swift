@@ -13,8 +13,11 @@ public struct AppShellView: View {
 
     @State private var selectedTab: BottomTabBar.Item = .home
     @State private var destination: Destination?
+    private let onLogout: () -> Void
 
-    public init() {}
+    public init(onLogout: @escaping () -> Void = {}) {
+        self.onLogout = onLogout
+    }
 
     public var body: some View {
         Group {
@@ -35,7 +38,7 @@ public struct AppShellView: View {
                     onShowBookDetail: { destination = .bookDetail }
                 )
             case .my:
-                MyView(onSelectTab: selectTab)
+                MyView(onSelectTab: selectTab, onLogout: onLogout)
             }
         }
         .fullScreenCover(item: $destination) { destination in

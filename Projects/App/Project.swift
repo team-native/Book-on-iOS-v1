@@ -8,6 +8,7 @@ let project = Project.makeModule(
     deploymentTargets: .iOS("16.0"),
     dependencies: [
         .project(target: "Feature", path: .relativeToRoot("Projects/Feature")),
+        .project(target: "Service", path: .relativeToRoot("Projects/Service")),
         .project(target: "ThirdPartyLib", path: .relativeToRoot("Projects/ThirdPartyLib")),
     ],
     sources: ["Sources/**"],
