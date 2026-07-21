@@ -26,42 +26,41 @@ public struct MainHomeView: View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
 
-            ZStack(alignment: .topLeading) {
+            ZStack(alignment: .bottom) {
                 Color(red: 251 / 255, green: 251 / 255, blue: 252 / 255)
+                    .ignoresSafeArea()
 
-                header(scale: scale)
-                    .offset(x: 27 * scale, y: 66 * scale)
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        header(scale: scale)
 
-                BookSearchField(
-                    text: $searchText,
-                    scale: scale,
-                    onSearch: onShowSearch,
-                    onActivate: onShowSearch
-                )
-                    .offset(x: 27 * scale, y: 136 * scale)
+                        BookSearchField(
+                            text: $searchText,
+                            scale: scale,
+                            onSearch: onShowSearch,
+                            onActivate: onShowSearch
+                        )
+                        .padding(.top, 20 * scale)
 
-                Button(action: {}) { noticeCard(scale: scale) }
-                    .buttonStyle(.plain)
-                    .offset(x: 28 * scale, y: 197 * scale)
+                        Button(action: {}) { noticeCard(scale: scale) }
+                            .buttonStyle(.plain)
+                            .padding(.top, 19 * scale)
 
-                recommendationSection(scale: scale)
-                    .offset(x: 27 * scale, y: 425 * scale)
+                        recommendationSection(scale: scale)
+                            .padding(.top, 40 * scale)
 
-                HStack(spacing: 0) {
-                    Text("우리 학교 인기 책")
-                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
-                    Spacer()
-                    Button("더보기", action: onShowNewArrivals)
-                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                        .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+                        popularSection(scale: scale)
+                            .padding(.top, 34 * scale)
+                    }
+                    .padding(.top, 66 * scale)
+                    .padding(.horizontal, 27 * scale)
+                    .padding(.bottom, 112 * scale)
                 }
-                .frame(width: 338 * scale)
-                .offset(x: 27 * scale, y: 742 * scale)
 
                 BottomTabBar(selected: .home, scale: scale, action: onSelectTab)
-                    .offset(y: 763 * scale)
+                    .frame(height: 89 * scale, alignment: .top)
             }
-            .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+            .frame(width: geo.size.width, height: geo.size.height)
         }
         .ignoresSafeArea()
     }
@@ -158,38 +157,114 @@ public struct MainHomeView: View {
     }
 
     private func recommendationSection(scale: CGFloat) -> some View {
-        ZStack(alignment: .topLeading) {
-            Text("AI 추천")
-                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 20 * scale))
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 8 * scale) {
+                Text("AI 추천")
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 20 * scale))
+                HStack(spacing: 4 * scale) {
+                    Image(systemName: "sparkles").font(.system(size: 8 * scale))
+                    Text("AI")
+                }
+                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
+                .foregroundColor(.white)
+                .frame(width: 45 * scale, height: 22 * scale)
+                .background(LinearGradient(colors: [Color(red: 147/255, green: 210/255, blue: 52/255), Color(red: 116/255, green: 163/255, blue: 46/255)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
+                Spacer()
+                Button("더보기", action: onShowNewArrivals)
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+            }
             Text("홍길동님의 대출 이력을 분석해 골랐어요")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                 .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
-                .offset(y: 26 * scale)
-            HStack(spacing: 4 * scale) {
-                Image(systemName: "sparkles").font(.system(size: 8 * scale))
-                Text("AI")
+                .padding(.top, 4 * scale)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(alignment: .top, spacing: 32 * scale) {
+                    bookSlot(imageName: "AIRecommendationNamiya", title: "나미야 잡화점의 기적", author: "히가시노 게이고", scale: scale)
+                    bookSlot(imageName: "AIRecommendationAlmond", title: "아몬드", author: "손원평", scale: scale)
+                    bookSlot(imageName: "AIRecommendationTonight", title: "오늘 밤, 세계에서\n이 사랑이 사라진다 해도", author: "이치조 미사키", scale: scale)
+                }
+                .padding(.leading, 27 * scale)
+                .padding(.trailing, 27 * scale)
             }
-            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
-            .foregroundColor(.white)
-            .frame(width: 45 * scale, height: 22 * scale)
-            .background(LinearGradient(colors: [Color(red: 147/255, green: 210/255, blue: 52/255), Color(red: 116/255, green: 163/255, blue: 46/255)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
-            .offset(x: 68 * scale)
-            Button("더보기", action: onShowNewArrivals)
-                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor).offset(x: 310 * scale, y: 2 * scale)
-            bookSlot(title: "나미야 잡화점의 기적", author: "히가시노 게이고", scale: scale).offset(x: 1 * scale, y: 56 * scale)
-            bookSlot(title: "아몬드", author: "손원평", scale: scale).offset(x: 152 * scale, y: 56 * scale)
-            bookSlot(title: "오늘 밤, 세계에서\n이 사랑이 사라진다 해도", author: "이치조 미사키", scale: scale).offset(x: 302 * scale, y: 56 * scale)
+            .padding(.horizontal, -27 * scale)
+            .padding(.top, 13 * scale)
         }
-        .frame(width: 365 * scale, height: 292 * scale, alignment: .topLeading)
+        .frame(width: 338 * scale, alignment: .leading)
     }
 
-    private func bookSlot(title: String, author: String, scale: CGFloat) -> some View {
-        Button(action: onShowBookDetail) { VStack(alignment: .leading, spacing: 0) {
-            BookThumbnail(scale: scale, action: {})
-            Text(title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).lineLimit(2).frame(width: 118 * scale, alignment: .leading).padding(.top, 18 * scale)
-            Text(author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255)).padding(.top, 4 * scale)
-        } }
+    private func bookSlot(imageName: String, title: String, author: String, scale: CGFloat) -> some View {
+        Button(action: onShowBookDetail) {
+            VStack(alignment: .leading, spacing: 0) {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 94 * scale, height: 160 * scale)
+                    .clipped()
+                Text(title)
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .lineLimit(2)
+                    .frame(width: 118 * scale, alignment: .leading)
+                    .padding(.top, 18 * scale)
+                Text(author)
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .padding(.top, 4 * scale)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func popularSection(scale: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 14 * scale) {
+            HStack {
+                Text("우리 학교 인기 책")
+                    .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
+                Spacer()
+                Button("더보기", action: onShowNewArrivals)
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 16 * scale) {
+                    popularBook(title: "소년이 온다", detail: "한강 · 재고 3권", color: Color(red: 110/255, green: 110/255, blue: 110/255), scale: scale)
+                    popularBook(title: "데미안", detail: "헤르만 헤세 · 재고 1권", color: Color(red: 95/255, green: 67/255, blue: 67/255), scale: scale)
+                    popularBook(title: "클린 코더", detail: "로버트 C. 마틴 · 재고 2권", color: Color(red: 78/255, green: 91/255, blue: 103/255), scale: scale)
+                }
+                .padding(.leading, 27 * scale)
+                .padding(.vertical, 2 * scale)
+                .padding(.trailing, 27 * scale)
+            }
+            .padding(.horizontal, -27 * scale)
+        }
+        .frame(width: 338 * scale)
+    }
+
+    private func popularBook(title: String, detail: String, color: Color, scale: CGFloat) -> some View {
+        Button(action: onShowBookDetail) {
+            HStack(spacing: 8 * scale) {
+                color
+                    .frame(width: 50 * scale, height: 64 * scale)
+                    .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
+                VStack(alignment: .leading, spacing: 10 * scale) {
+                    Text(title)
+                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                        .foregroundColor(.black)
+                    Text(detail)
+                        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
+                        .foregroundColor(Color(red: 176/255, green: 176/255, blue: 181/255))
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(6 * scale)
+            .frame(width: 206 * scale, height: 76 * scale)
+            .background(Color(red: 251/255, green: 251/255, blue: 252/255))
+            .clipShape(RoundedRectangle(cornerRadius: 12 * scale))
+            .shadow(color: .black.opacity(0.15), radius: 9 * scale, x: scale, y: scale)
+        }
         .buttonStyle(.plain)
     }
 
