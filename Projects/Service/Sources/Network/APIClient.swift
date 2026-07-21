@@ -3,6 +3,8 @@ import Foundation
 public enum NetworkError: Error {
     case invalidURL
     case invalidResponse
+    case missingAccessToken
+    case sessionExpired(message: String?)
     case server(statusCode: Int, errorCode: Int?, message: String?)
     case decoding(Error)
 }
@@ -14,6 +16,10 @@ extension NetworkError: LocalizedError {
             return "요청 URL을 만들 수 없습니다."
         case .invalidResponse:
             return "서버 응답을 확인할 수 없습니다."
+        case .missingAccessToken:
+            return "로그인이 필요한 기능입니다."
+        case let .sessionExpired(message):
+            return message ?? "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
         case let .server(_, _, message):
             return message ?? "서버 요청에 실패했습니다."
         case let .decoding(error):
@@ -26,15 +32,18 @@ public struct APIClient: Sendable {
     private let baseURL: URL
     private let session: URLSession
     private let decoder: JSONDecoder
+    private let tokenStore: AuthTokenStore
 
     public init(
         baseURL: URL = APIConfiguration.baseURL,
         session: URLSession = .shared,
-        decoder: JSONDecoder = JSONDecoder()
+        decoder: JSONDecoder = JSONDecoder(),
+        tokenStore: AuthTokenStore = AuthTokenStore()
     ) {
         self.baseURL = baseURL
         self.session = session
         self.decoder = decoder
+        self.tokenStore = tokenStore
     }
 
     public func send<ResponseData: Decodable>(
@@ -50,6 +59,12 @@ public struct APIClient: Sendable {
 
         guard 200..<300 ~= httpResponse.statusCode else {
             let errorResponse = try? decoder.decode(APIErrorResponse.self, from: data)
+
+            if endpoint.requiresAuthorization && httpResponse.statusCode == 401 {
+                try? tokenStore.deleteAll()
+                throw NetworkError.sessionExpired(message: errorResponse?.message)
+            }
+
             throw NetworkError.server(
                 statusCode: httpResponse.statusCode,
                 errorCode: errorResponse?.errorCode,
@@ -102,6 +117,13 @@ public struct APIClient: Sendable {
 
         endpoint.headers.forEach { field, value in
             request.setValue(value, forHTTPHeaderField: field)
+        }
+
+        if endpoint.requiresAuthorization {
+            guard let accessToken = try tokenStore.accessToken, !accessToken.isEmpty else {
+                throw NetworkError.missingAccessToken
+            }
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
 
         return request
