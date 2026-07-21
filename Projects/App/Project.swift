@@ -18,6 +18,14 @@ let project = Project.makeModule(
                 "UIColorName": "",
                 "UIImageName": "",
             ],
+            "NSAppTransportSecurity": [
+                "NSExceptionDomains": [
+                    "ssh.gsmsv.site": [
+                        "NSExceptionAllowsInsecureHTTPLoads": true,
+                        "NSIncludesSubdomains": true,
+                    ],
+                ],
+            ],
         ]
     )
 )
