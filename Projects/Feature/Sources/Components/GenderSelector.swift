@@ -10,6 +10,13 @@ enum SignUpGender {
         case .female: return "여자"
         }
     }
+
+    var serverCode: String {
+        switch self {
+        case .male: return "MALE"
+        case .female: return "FEMALE"
+        }
+    }
 }
 
 struct GenderSelector: View {

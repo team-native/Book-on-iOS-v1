@@ -3,6 +3,8 @@ import UIKit
 
 struct SignUpStep2View: View {
     @Binding var info: SignUpAccountInfo
+    let isSubmitting: Bool
+    let submissionError: String?
     let onNext: () -> Void
 
     @State private var isTermsExpanded = false
@@ -14,7 +16,7 @@ struct SignUpStep2View: View {
     private var isPasswordValid: Bool {
         info.password.count >= 6 && info.password.count <= 15
             && info.password.contains { $0.isLetter }
-            && info.password.contains { $0.isNumber }
+            && info.password.contains { !$0.isLetter && !$0.isNumber }
     }
 
     private var isFormValid: Bool {
@@ -85,6 +87,10 @@ struct SignUpStep2View: View {
                             hideKeyboard()
                         }
                     )
+
+                    if let submissionError {
+                        InlineErrorText(message: submissionError, scale: scale)
+                    }
                 }
                 .offset(x: 31 * scale, y: 283 * scale)
 
@@ -93,7 +99,12 @@ struct SignUpStep2View: View {
                     contentBottomY: (734 + 52) * scale,
                     keyboard: keyboard
                 ) {
-                    PrimaryButton(title: "가입 완료", scale: scale, action: validateAndProceed)
+                    PrimaryButton(
+                        title: isSubmitting ? "가입 중..." : "가입 완료",
+                        scale: scale,
+                        isEnabled: !isSubmitting,
+                        action: validateAndProceed
+                    )
                         .offset(x: 47 * scale, y: 734 * scale)
                 }
             }
@@ -110,6 +121,7 @@ struct SignUpStep2View: View {
     }
 
     private func validateAndProceed() {
+        guard !isSubmitting else { return }
         hideKeyboard()
 
         guard isPasswordValid else {

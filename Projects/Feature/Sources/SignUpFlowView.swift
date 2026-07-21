@@ -1,13 +1,21 @@
 import SwiftUI
+import Service
 
 public struct SignUpFlowView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var info = SignUpAccountInfo()
     @State private var currentStep: SignUpFlowStep = .school
+    @State private var isRegistering = false
+    @State private var registerError: String?
 
     private let onFinished: () -> Void
+    private let registerService: RegisterService
 
-    public init(onFinished: @escaping () -> Void = {}) {
+    public init(
+        registerService: RegisterService = RegisterService(),
+        onFinished: @escaping () -> Void = {}
+    ) {
+        self.registerService = registerService
         self.onFinished = onFinished
     }
 
@@ -22,7 +30,9 @@ public struct SignUpFlowView: View {
             case .account:
                 SignUpStep2View(
                     info: $info,
-                    onNext: { move(to: .marathon) }
+                    isSubmitting: isRegistering,
+                    submissionError: registerError,
+                    onNext: register
                 )
             case .marathon:
                 SignUpStep3View(
@@ -54,11 +64,49 @@ public struct SignUpFlowView: View {
     }
 
     private func move(to step: SignUpFlowStep) {
+        registerError = nil
         var transaction = Transaction()
         transaction.disablesAnimations = true
 
         withTransaction(transaction) {
             currentStep = step
+        }
+    }
+
+    private func register() {
+        guard
+            !isRegistering,
+            let department = info.department?.serverCode,
+            let gender = info.gender?.serverCode
+        else { return }
+
+        isRegistering = true
+        registerError = nil
+
+        let request = RegisterRequest(
+            email: "\(info.schoolEmailPrefix)@gsm.hs.kr",
+            name: info.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            department: department,
+            gender: gender,
+            password: info.password,
+            passwordConfirm: info.passwordConfirm
+        )
+
+        Task {
+            do {
+                try await registerService.register(request)
+                isRegistering = false
+                move(to: .marathon)
+            } catch let NetworkError.server(statusCode, _, message) where statusCode == 409 {
+                isRegistering = false
+                registerError = message ?? "이미 가입된 이메일입니다."
+            } catch let NetworkError.server(statusCode, _, message) where statusCode == 422 {
+                isRegistering = false
+                registerError = message ?? "입력한 회원정보를 다시 확인해주세요."
+            } catch {
+                isRegistering = false
+                registerError = error.localizedDescription
+            }
         }
     }
 
@@ -72,6 +120,17 @@ public struct SignUpFlowView: View {
             move(to: .account)
         case .complete:
             break
+        }
+    }
+}
+
+private extension String {
+    var serverCode: String? {
+        switch self {
+        case "소프트웨어개발과": return "SW"
+        case "사물인터넷과": return "IOT"
+        case "인공지능과": return "AI"
+        default: return nil
         }
     }
 }
