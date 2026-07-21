@@ -1,13 +1,16 @@
 import SwiftUI
 import UIKit
+import Service
 
 public struct LoginView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var emailError: String?
     @State private var passwordError: String?
+    @State private var isLoading = false
     @StateObject private var keyboard = KeyboardObserver()
 
+    private let loginService: LoginService
     private let onLogin: (String, String) -> Void
     private let onForgotPassword: () -> Void
     private let onSignUp: () -> Void
@@ -17,10 +20,12 @@ public struct LoginView: View {
     public init(
         emailError: String? = nil,
         passwordError: String? = nil,
+        loginService: LoginService = LoginService(),
         onLogin: @escaping (String, String) -> Void = { _, _ in },
         onForgotPassword: @escaping () -> Void = {},
         onSignUp: @escaping () -> Void = {}
     ) {
+        self.loginService = loginService
         self.onLogin = onLogin
         self.onForgotPassword = onForgotPassword
         self.onSignUp = onSignUp
@@ -103,7 +108,7 @@ public struct LoginView: View {
                 .buttonStyle(.plain)
                 .offset(x: 258 * scale, y: forgotPasswordY * scale)
 
-                LoginButton(title: "로그인", width: buttonWidth, scale: scale) {
+                LoginButton(title: "로그인", width: buttonWidth, scale: scale, isLoading: isLoading) {
                     submitLogin()
                 }
                 .offset(x: 41 * scale, y: loginButtonY)
@@ -120,6 +125,7 @@ public struct LoginView: View {
     }
 
     private func submitLogin() {
+        guard !isLoading else { return }
         UIApplication.hideKeyboard()
 
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -147,7 +153,21 @@ public struct LoginView: View {
         passwordError = nil
 
         let loginEmail = "\(trimmedEmail)@gsm.hs.kr"
-        onLogin(loginEmail, password)
+        isLoading = true
+
+        Task {
+            do {
+                try await loginService.login(loginId: loginEmail, password: trimmedPassword)
+                isLoading = false
+                onLogin(loginEmail, trimmedPassword)
+            } catch let NetworkError.server(statusCode, _, _) where statusCode == 401 {
+                isLoading = false
+                passwordError = "아이디 또는 비밀번호가 일치하지 않아요"
+            } catch {
+                isLoading = false
+                passwordError = error.localizedDescription
+            }
+        }
     }
 }
 
@@ -243,19 +263,27 @@ private struct LoginButton: View {
     let title: String
     let width: CGFloat
     var scale: CGFloat
+    let isLoading: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
-                .foregroundColor(.white)
-                .frame(width: width * scale, height: 52 * scale)
-                .background(FeatureAsset.Color.buttonColor.swiftUIColor)
-                .cornerRadius(10 * scale)
-                .shadow(color: .black.opacity(0.25), radius: 2 * scale, x: 1 * scale, y: 1 * scale)
+            Group {
+                if isLoading {
+                    ProgressView().tint(.white)
+                } else {
+                    Text(title)
+                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
+                        .foregroundColor(.white)
+                }
+            }
+            .frame(width: width * scale, height: 52 * scale)
+            .background(FeatureAsset.Color.buttonColor.swiftUIColor)
+            .cornerRadius(10 * scale)
+            .shadow(color: .black.opacity(0.25), radius: 2 * scale, x: 1 * scale, y: 1 * scale)
         }
         .buttonStyle(.plain)
+        .disabled(isLoading)
     }
 }
 
