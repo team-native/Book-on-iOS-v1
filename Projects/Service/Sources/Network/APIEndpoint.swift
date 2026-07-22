@@ -14,6 +14,7 @@ public struct APIEndpoint: Sendable {
     public let headers: [String: String]
     public let body: Data?
     public let requiresAuthorization: Bool
+    public let usesAuthorizationIfAvailable: Bool
 
     public init(
         path: String,
@@ -21,7 +22,8 @@ public struct APIEndpoint: Sendable {
         queryItems: [URLQueryItem] = [],
         headers: [String: String] = [:],
         body: Data? = nil,
-        requiresAuthorization: Bool = false
+        requiresAuthorization: Bool = false,
+        usesAuthorizationIfAvailable: Bool = false
     ) {
         self.path = path
         self.method = method
@@ -29,6 +31,7 @@ public struct APIEndpoint: Sendable {
         self.headers = headers
         self.body = body
         self.requiresAuthorization = requiresAuthorization
+        self.usesAuthorizationIfAvailable = usesAuthorizationIfAvailable
     }
 
     public static func json<Body: Encodable>(
@@ -38,6 +41,7 @@ public struct APIEndpoint: Sendable {
         queryItems: [URLQueryItem] = [],
         headers: [String: String] = [:],
         requiresAuthorization: Bool = false,
+        usesAuthorizationIfAvailable: Bool = false,
         encoder: JSONEncoder = JSONEncoder()
     ) throws -> APIEndpoint {
         try APIEndpoint(
@@ -46,7 +50,8 @@ public struct APIEndpoint: Sendable {
             queryItems: queryItems,
             headers: headers,
             body: encoder.encode(body),
-            requiresAuthorization: requiresAuthorization
+            requiresAuthorization: requiresAuthorization,
+            usesAuthorizationIfAvailable: usesAuthorizationIfAvailable
         )
     }
 }

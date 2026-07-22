@@ -127,6 +127,10 @@ public struct APIClient: Sendable {
                 throw NetworkError.missingAccessToken
             }
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        } else if endpoint.usesAuthorizationIfAvailable,
+                  let accessToken = try tokenStore.accessToken,
+                  !accessToken.isEmpty {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
 
         return request

@@ -6,15 +6,18 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var home: HomeData?
     @Published private(set) var notice: Notice?
     @Published private(set) var recommendations: [BookRecommendation] = []
+    @Published private(set) var popularBooks: [BookSummary] = []
     @Published private(set) var isLoading = false
     @Published private(set) var noticeFailed = false
     @Published private(set) var recommendationsFailed = false
     @Published private(set) var errorMessage: String?
 
     private let service: HomeService
+    private let booksService: BooksService
 
-    init(service: HomeService) {
+    init(service: HomeService, booksService: BooksService) {
         self.service = service
+        self.booksService = booksService
     }
 
     var displayedRecommendations: [BookRecommendation] {
@@ -34,9 +37,15 @@ final class HomeViewModel: ObservableObject {
         async let homeRequest: Void = loadHome()
         async let noticesRequest: Void = loadNotices()
         async let recommendationsRequest: Void = loadRecommendations()
-        _ = await (homeRequest, noticesRequest, recommendationsRequest)
+        async let popularRequest: Void = loadPopularBooks()
+        _ = await (homeRequest, noticesRequest, recommendationsRequest, popularRequest)
 
         isLoading = false
+    }
+
+    private func loadPopularBooks() async {
+        do { popularBooks = try await booksService.fetchBooks(sort: "POPULAR", size: 10).items }
+        catch { record(error) }
     }
 
     private func loadHome() async {

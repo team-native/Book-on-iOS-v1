@@ -6,6 +6,7 @@ public struct MyView: View {
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
+    @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onLogout: () -> Void
@@ -64,7 +65,20 @@ public struct MyView: View {
             LoanHistoryView(onBack: { showsLoanHistory = false })
         }
         .fullScreenCover(isPresented: $showsFavorites) {
-            FavoritesView(onBack: { showsFavorites = false })
+            FavoritesView(
+                onBack: { showsFavorites = false },
+                onShowBookDetail: { selectedFavoriteBookId = $0 }
+            )
+            .fullScreenCover(
+                isPresented: Binding(
+                    get: { selectedFavoriteBookId != nil },
+                    set: { if !$0 { selectedFavoriteBookId = nil } }
+                )
+            ) {
+                if let bookId = selectedFavoriteBookId {
+                    BookDetailView(bookId: bookId, onBack: { selectedFavoriteBookId = nil })
+                }
+            }
         }
         .alert("로그아웃하시겠어요?", isPresented: $showsLogoutConfirmation) {
             Button("취소", role: .cancel) {}
