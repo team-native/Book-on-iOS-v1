@@ -1,4 +1,35 @@
 import SwiftUI
+import Service
+
+@MainActor
+private final class MarathonViewModel: ObservableObject {
+    @Published private(set) var marathon: MarathonData?
+    @Published private(set) var myInfo: Read365MyInfo?
+    @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
+
+    private let service: MarathonService
+
+    init(service: MarathonService) {
+        self.service = service
+    }
+
+    func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            async let marathonRequest = service.fetchMarathon()
+            async let myInfoRequest = service.fetchMyInfo()
+            marathon = try await marathonRequest
+            myInfo = try await myInfoRequest
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+}
 
 public struct MyView: View {
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
@@ -8,13 +39,16 @@ public struct MyView: View {
     @State private var showsFavorites = false
     @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
+    @StateObject private var marathonViewModel: MarathonViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onLogout: () -> Void
 
     public init(
+        marathonService: MarathonService = MarathonService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onLogout: @escaping () -> Void = {}
     ) {
+        _marathonViewModel = StateObject(wrappedValue: MarathonViewModel(service: marathonService))
         self.onSelectTab = onSelectTab
         self.onLogout = onLogout
     }
@@ -33,8 +67,8 @@ public struct MyView: View {
                         .buttonStyle(.plain)
                     }
                     VStack(alignment: .leading, spacing: 5 * scale) {
-                        Text("홍길동 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
-                        Text("9기 · AI과").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
+                        Text("\(marathonViewModel.myInfo?.profile.name ?? "사용자") 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
+                        Text(profileDetail).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
                     }
                 }.offset(x: 23 * scale, y: 108 * scale)
                 ProfileStatsCard(stats: [("대출 중", "3권"), ("반납 임박", "2권"), ("누적 대출", "23권")], scale: scale).frame(width: 346 * scale).offset(x: 23 * scale, y: 188 * scale)
@@ -60,6 +94,7 @@ public struct MyView: View {
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()
+        .task { await marathonViewModel.load() }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
         .fullScreenCover(isPresented: $showsLoanHistory) {
             LoanHistoryView(onBack: { showsLoanHistory = false })
@@ -86,31 +121,41 @@ public struct MyView: View {
         }
     }
     private func marathonCard(scale: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let activeMarathon = marathonViewModel.marathon?.marathons.first
+        let targetPage = Int(activeMarathon?.course?.completeDistance ?? "") ?? 0
+        let currentPage = activeMarathon?.myTotalPage ?? 0
+        let progress = targetPage > 0 ? min(Double(currentPage) / Double(targetPage), 1) : 0
+        let isLinked = marathonViewModel.marathon?.activeCount ?? 0 > 0
+
+        return VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("🏃  2026 독서마라톤").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
                 Spacer()
-                if isMarathonLinked {
+                if isLinked {
                     Text("참여 중").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 10 * scale)).foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor).padding(.horizontal, 9 * scale).padding(.vertical, 5 * scale).background(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 6 * scale))
-                } else {
-                    Toggle("", isOn: $isMarathonLinked)
-                        .labelsHidden()
-                        .tint(FeatureAsset.Color.buttonColor.swiftUIColor)
-                        .scaleEffect(0.82 * scale)
+                } else if marathonViewModel.isLoading {
+                    ProgressView().scaleEffect(0.8)
                 }
             }
-            if isMarathonLinked {
-                HStack { Text("거북이 코스 · 42 / 50권"); Spacer(); Text("84%").foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor) }.font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 15 * scale)
-                GeometryReader { p in ZStack(alignment: .leading) { Capsule().fill(Color(red: 217/255, green: 217/255, blue: 217/255)); Capsule().fill(FeatureAsset.Color.buttonColor.swiftUIColor).frame(width: p.size.width * 0.84) } }.frame(height: 8 * scale).padding(.top, 14 * scale)
-                Text("완주까지 8권 남았어요 · 상위 12%").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 12 * scale)
+            if isLinked {
+                HStack { Text("\(activeMarathon?.course?.courseName ?? "진행 중") · \(currentPage) / \(targetPage)쪽"); Spacer(); Text("\(Int(progress * 100))%").foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor) }.font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 15 * scale)
+                GeometryReader { p in ZStack(alignment: .leading) { Capsule().fill(Color(red: 217/255, green: 217/255, blue: 217/255)); Capsule().fill(FeatureAsset.Color.buttonColor.swiftUIColor).frame(width: p.size.width * progress) } }.frame(height: 8 * scale).padding(.top, 14 * scale)
+                Text("완주까지 \(max(targetPage - currentPage, 0))쪽 남았어요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 12 * scale)
             } else {
-                Text("아직 연동하지 않았어요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 16 * scale)
-                Text("토글을 켜면 독서마라톤 계정을 연동할 수 있어요")
+                Text(marathonViewModel.errorMessage ?? "아직 연동하지 않았어요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 16 * scale)
+                Text("회원가입 또는 계정 설정에서 독서마라톤을 연동해주세요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255))
                     .padding(.top, 14 * scale)
             }
         }.padding(18 * scale).frame(width: 346 * scale, height: 126 * scale, alignment: .topLeading).background(Color(red: 251/255, green: 251/255, blue: 252/255)).overlay(RoundedRectangle(cornerRadius: 16 * scale).stroke(Color(red: 243/255, green: 243/255, blue: 245/255))).clipShape(RoundedRectangle(cornerRadius: 16 * scale))
+    }
+
+    private var profileDetail: String {
+        let profile = marathonViewModel.myInfo?.profile
+        let grade = profile?.memGrade.map { "\($0)학년" }
+        let schoolClass = profile?.memClass.map { "\($0)반" }
+        return [grade, schoolClass].compactMap { $0 }.joined(separator: " · ")
     }
 }
 

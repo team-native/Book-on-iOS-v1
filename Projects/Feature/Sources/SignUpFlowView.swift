@@ -10,15 +10,24 @@ public struct SignUpFlowView: View {
     @State private var verificationSessionId: String?
     @State private var isVerifying = false
     @State private var verificationError: String?
+    @State private var isRegistrationVerified = false
+    @State private var isLinkingRead365 = false
+    @State private var read365Error: String?
 
     private let onFinished: () -> Void
     private let registerService: RegisterService
+    private let loginService: LoginService
+    private let read365Service: Read365Service
 
     public init(
         registerService: RegisterService = RegisterService(),
+        loginService: LoginService = LoginService(),
+        read365Service: Read365Service = Read365Service(),
         onFinished: @escaping () -> Void = {}
     ) {
         self.registerService = registerService
+        self.loginService = loginService
+        self.read365Service = read365Service
         self.onFinished = onFinished
     }
 
@@ -48,6 +57,9 @@ public struct SignUpFlowView: View {
             case .marathon:
                 SignUpStep3View(
                     info: $info,
+                    isLinking: isLinkingRead365,
+                    linkError: read365Error,
+                    onLink: linkRead365,
                     onNext: { move(to: .complete) }
                 )
             case .complete:
@@ -145,11 +157,19 @@ public struct SignUpFlowView: View {
 
         Task {
             do {
-                let request = RegisterVerificationRequest(
-                    sessionId: verificationSessionId,
-                    passcode: passcode
+                if !isRegistrationVerified {
+                    let request = RegisterVerificationRequest(
+                        sessionId: verificationSessionId,
+                        passcode: passcode
+                    )
+                    try await registerService.verify(request)
+                    await MainActor.run { isRegistrationVerified = true }
+                }
+
+                try await loginService.login(
+                    loginId: "\(info.schoolEmailPrefix)@gsm.hs.kr",
+                    password: info.password
                 )
-                try await registerService.verify(request)
                 await MainActor.run {
                     isVerifying = false
                     move(to: .marathon)
@@ -158,6 +178,28 @@ public struct SignUpFlowView: View {
                 await MainActor.run {
                     isVerifying = false
                     verificationError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func linkRead365(id: String, password: String) {
+        guard !isLinkingRead365 else { return }
+        isLinkingRead365 = true
+        read365Error = nil
+
+        Task {
+            do {
+                try await read365Service.login(id: id, password: password)
+                await MainActor.run {
+                    isLinkingRead365 = false
+                    info.isMarathonLinked = true
+                    move(to: .complete)
+                }
+            } catch {
+                await MainActor.run {
+                    isLinkingRead365 = false
+                    read365Error = error.localizedDescription
                 }
             }
         }

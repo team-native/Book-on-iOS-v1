@@ -3,6 +3,9 @@ import UIKit
 
 struct SignUpStep3View: View {
     @Binding var info: SignUpAccountInfo
+    let isLinking: Bool
+    let linkError: String?
+    let onLink: (String, String) -> Void
     let onNext: () -> Void
 
     @State private var isLinkFormPresented = false
@@ -145,6 +148,10 @@ struct SignUpStep3View: View {
                     fieldWidth: 342,
                     scale: scale
                 )
+
+                if let linkError {
+                    InlineErrorText(message: linkError, scale: scale)
+                }
             }
             .offset(x: 25 * scale, y: 296 * scale)
 
@@ -154,16 +161,22 @@ struct SignUpStep3View: View {
                 keyboard: keyboard
             ) {
                 VStack(spacing: 16 * scale) {
-                    PrimaryButton(title: "연동하고 가입완료", scale: scale, action: {
+                    PrimaryButton(
+                        title: isLinking ? "연동 중..." : "연동하고 가입완료",
+                        scale: scale,
+                        isEnabled: !isLinking,
+                        action: {
                         hideKeyboard()
                         guard isLinkFormValid else { return }
-
-                        info.isMarathonLinked = true
-                        onNext()
+                        onLink(
+                            info.marathonId.trimmingCharacters(in: .whitespacesAndNewlines),
+                            info.marathonPassword
+                        )
                     })
 
                     Button(action: {
                         hideKeyboard()
+                        guard !isLinking else { return }
                         info.isMarathonLinked = false
                         onNext()
                     }) {
