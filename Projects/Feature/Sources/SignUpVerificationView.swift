@@ -23,7 +23,7 @@ struct SignUpVerificationView: View {
             ZStack(alignment: .topLeading) {
                 FeatureAsset.Color.background.swiftUIColor.ignoresSafeArea()
 
-                SignUpProgressBar(currentStep: 2, scale: scale)
+                SignUpProgressBar(currentStep: 1, scale: scale)
                     .frame(width: 333 * scale, alignment: .leading)
                     .offset(x: 30 * scale, y: 131 * scale)
 
@@ -62,40 +62,43 @@ struct SignUpVerificationView: View {
                         .offset(x: 52 * scale, y: 396 * scale)
                 }
 
-                PrimaryButton(
-                    title: isSubmitting ? "인증 중..." : "인증하고 계속하기",
-                    scale: scale,
-                    isEnabled: !isSubmitting
-                ) {
-                    UIApplication.shared.sendAction(
-                        #selector(UIResponder.resignFirstResponder),
-                        to: nil,
-                        from: nil,
-                        for: nil
-                    )
-                    guard verificationCode.count == 6 else {
-                        localError = "인증번호 6자리를 입력해주세요."
-                        return
+                VStack(spacing: 24 * scale) {
+                    PrimaryButton(
+                        title: isSubmitting ? "인증 중..." : "인증하고 계속하기",
+                        scale: scale,
+                        isEnabled: !isSubmitting
+                    ) {
+                        UIApplication.shared.sendAction(
+                            #selector(UIResponder.resignFirstResponder),
+                            to: nil,
+                            from: nil,
+                            for: nil
+                        )
+                        guard verificationCode.count == 6 else {
+                            localError = "인증번호 6자리를 입력해주세요."
+                            return
+                        }
+                        onVerify(verificationCode)
                     }
-                    onVerify(verificationCode)
-                }
-                .offset(x: 47 * scale, y: 726 * scale)
 
-                HStack(spacing: 4 * scale) {
-                    Text("코드를 받지 못하셨나요?")
-                    Button("재전송") {
-                        guard !isSubmitting else { return }
-                        verificationCode = ""
-                        localError = nil
-                        remainingSeconds = 300
-                        onResend()
+                    HStack(spacing: 4 * scale) {
+                        Text("코드를 받지 못하셨나요?")
+                        Button("재전송") {
+                            guard !isSubmitting else { return }
+                            verificationCode = ""
+                            localError = nil
+                            remainingSeconds = 300
+                            onResend()
+                        }
+                        .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
                     }
-                    .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+                    .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
+                    .frame(width: 300 * scale)
                 }
-                .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
-                .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
-                .frame(width: 300 * scale)
-                .offset(x: 47 * scale, y: 802 * scale)
+                .frame(width: geo.size.width)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, max(18 * scale, geo.safeAreaInsets.bottom + 8 * scale))
             }
         }
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
