@@ -244,11 +244,7 @@ struct SignUpStep1View: View {
         guard isFormValid else { return }
 
         emailError = nil
-        verificationCode = ""
-        verificationError = nil
-        remainingVerificationSeconds = 292
-
-        isVerificationPresented = true
+        onNext()
     }
 
     private func validateVerificationAndProceed() {
@@ -398,7 +394,7 @@ private func sanitizeSchoolEmail(_ value: String) -> String {
     return String(sanitized.prefix(6))
 }
 
-private struct VerificationCodeInputView: View {
+struct VerificationCodeInputView: View {
     @Binding var code: String
     let scale: CGFloat
 

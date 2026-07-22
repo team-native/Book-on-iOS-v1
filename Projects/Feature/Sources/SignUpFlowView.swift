@@ -7,6 +7,9 @@ public struct SignUpFlowView: View {
     @State private var currentStep: SignUpFlowStep = .school
     @State private var isRegistering = false
     @State private var registerError: String?
+    @State private var verificationSessionId: String?
+    @State private var isVerifying = false
+    @State private var verificationError: String?
 
     private let onFinished: () -> Void
     private let registerService: RegisterService
@@ -33,6 +36,14 @@ public struct SignUpFlowView: View {
                     isSubmitting: isRegistering,
                     submissionError: registerError,
                     onNext: register
+                )
+            case .verification:
+                SignUpVerificationView(
+                    email: "\(info.schoolEmailPrefix)@gsm.hs.kr",
+                    isSubmitting: isVerifying,
+                    errorMessage: verificationError,
+                    onVerify: verifyRegistration,
+                    onResend: register
                 )
             case .marathon:
                 SignUpStep3View(
@@ -94,18 +105,60 @@ public struct SignUpFlowView: View {
 
         Task {
             do {
-                try await registerService.register(request)
-                isRegistering = false
-                move(to: .marathon)
+                let response = try await registerService.register(request)
+                await MainActor.run {
+                    verificationSessionId = response.sessionId
+                    isRegistering = false
+                    verificationError = nil
+                    move(to: .verification)
+                }
             } catch let NetworkError.server(statusCode, _, message) where statusCode == 409 {
-                isRegistering = false
-                registerError = message ?? "이미 가입된 이메일입니다."
+                await MainActor.run {
+                    isRegistering = false
+                    registerError = message ?? "이미 가입된 이메일입니다."
+                    verificationError = registerError
+                }
             } catch let NetworkError.server(statusCode, _, message) where statusCode == 422 {
-                isRegistering = false
-                registerError = message ?? "입력한 회원정보를 다시 확인해주세요."
+                await MainActor.run {
+                    isRegistering = false
+                    registerError = message ?? "입력한 회원정보를 다시 확인해주세요."
+                    verificationError = registerError
+                }
             } catch {
-                isRegistering = false
-                registerError = error.localizedDescription
+                await MainActor.run {
+                    isRegistering = false
+                    registerError = error.localizedDescription
+                    verificationError = registerError
+                }
+            }
+        }
+    }
+
+    private func verifyRegistration(_ passcode: String) {
+        guard !isVerifying, let verificationSessionId else {
+            verificationError = "인증 세션이 없습니다. 인증번호를 다시 요청해주세요."
+            return
+        }
+
+        isVerifying = true
+        verificationError = nil
+
+        Task {
+            do {
+                let request = RegisterVerificationRequest(
+                    sessionId: verificationSessionId,
+                    passcode: passcode
+                )
+                try await registerService.verify(request)
+                await MainActor.run {
+                    isVerifying = false
+                    move(to: .marathon)
+                }
+            } catch {
+                await MainActor.run {
+                    isVerifying = false
+                    verificationError = error.localizedDescription
+                }
             }
         }
     }
@@ -116,8 +169,10 @@ public struct SignUpFlowView: View {
             dismiss()
         case .account:
             move(to: .school)
-        case .marathon:
+        case .verification:
             move(to: .account)
+        case .marathon:
+            move(to: .verification)
         case .complete:
             break
         }
@@ -138,6 +193,7 @@ private extension String {
 private enum SignUpFlowStep {
     case school
     case account
+    case verification
     case marathon
     case complete
 }

@@ -100,7 +100,7 @@ struct SignUpStep2View: View {
                     keyboard: keyboard
                 ) {
                     PrimaryButton(
-                        title: isSubmitting ? "가입 중..." : "가입 완료",
+                        title: isSubmitting ? "인증번호 발송 중..." : "인증번호 받기",
                         scale: scale,
                         isEnabled: !isSubmitting,
                         action: validateAndProceed
