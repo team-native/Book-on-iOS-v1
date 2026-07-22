@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoanHistoryRow: View {
     let title: String
+    var author: String? = nil
     let dueText: String
     let badge: String
     var isCompleted = false
@@ -14,7 +15,7 @@ struct LoanHistoryRow: View {
                     .background(Color(red: 241/255, green: 241/255, blue: 244/255)).clipShape(RoundedRectangle(cornerRadius: 9 * scale))
                 VStack(alignment: .leading, spacing: 7 * scale) {
                     Text(title).font(FeatureFontFamily.Pretendard.extraBold.swiftUIFont(size: 15 * scale)).foregroundColor(.black)
-                    Text("로버트 C. 마틴 · \(dueText)").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
+                    Text([author, dueText].compactMap { $0 }.joined(separator: " · ")).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
                 }
                 Spacer()
                 BookStatusBadge(title: badge, scale: scale).opacity(isCompleted ? 0.45 : 1)
