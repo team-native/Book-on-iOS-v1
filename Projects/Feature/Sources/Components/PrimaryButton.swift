@@ -17,5 +17,7 @@ struct PrimaryButton: View {
                 .shadow(color: .black.opacity(0.25), radius: 4 * scale, x: 1 * scale, y: 1 * scale)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.65)
     }
 }
