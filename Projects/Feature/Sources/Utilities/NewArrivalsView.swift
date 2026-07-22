@@ -1,57 +1,42 @@
 import SwiftUI
+import Service
 
 public struct NewArrivalsView: View {
-    @State private var isLoading = true
+    @StateObject private var viewModel: NewBooksViewModel
     private let onDismiss: () -> Void
+    private let onShowBookDetail: (Int) -> Void
     private let showsDismissButton: Bool
 
-    public init(
-        showsDismissButton: Bool = false,
-        onDismiss: @escaping () -> Void = {}
-    ) {
-        self.showsDismissButton = showsDismissButton
-        self.onDismiss = onDismiss
+    public init(booksService: BooksService = BooksService(), showsDismissButton: Bool = false, onDismiss: @escaping () -> Void = {}, onShowBookDetail: @escaping (Int) -> Void = { _ in }) {
+        _viewModel = StateObject(wrappedValue: NewBooksViewModel(service: booksService))
+        self.showsDismissButton = showsDismissButton; self.onDismiss = onDismiss; self.onShowBookDetail = onShowBookDetail
     }
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
-            ScrollView(showsIndicators: true) {
-                VStack(alignment: .leading, spacing: 0) {
-                    if showsDismissButton {
-                        AppBackButton(scale: scale, action: onDismiss)
-                            .padding(.leading, 23 * scale)
-                            .padding(.top, 56 * scale)
-                    }
-                    Text("최근 새로 들어온 도서")
-                        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 20 * scale))
-                        .padding(.top, showsDismissButton ? 30 * scale : 90 * scale)
-                        .padding(.leading, 44 * scale)
-                    if isLoading {
-                        bookGrid(scale: scale, isAnimating: true)
-                    } else {
-                        bookGrid(scale: scale, isAnimating: false)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24 * scale) {
+                    if showsDismissButton { AppBackButton(scale: scale, action: onDismiss) }
+                    Text("최근 새로 들어온 도서").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 20 * scale))
+                    content(scale: scale)
+                }.padding(.horizontal, 32 * scale).padding(.top, 56 * scale)
             }
-        }
-        .background(Color.white)
-        .ignoresSafeArea()
-        .task {
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            isLoading = false
-        }
+        }.background(Color.white).ignoresSafeArea().task { await viewModel.load() }
     }
 
-    private func bookGrid(scale: CGFloat, isAnimating: Bool) -> some View {
-        LazyVGrid(columns: [GridItem(.fixed(132 * scale), spacing: 40 * scale), GridItem(.fixed(132 * scale))], spacing: 85 * scale) {
-            ForEach(0..<6, id: \.self) { _ in
-                BookCardSkeleton(scale: scale, isAnimating: isAnimating)
+    @ViewBuilder private func content(scale: CGFloat) -> some View {
+        if viewModel.isLoading && viewModel.books.isEmpty { ProgressView().frame(maxWidth: .infinity).padding(.top, 180 * scale) }
+        else if let error = viewModel.errorMessage { VStack { Text(error); Button("재시도") { Task { await viewModel.load() } } }.frame(maxWidth: .infinity).padding(.top, 140 * scale) }
+        else if viewModel.books.isEmpty { Text("최근 등록된 도서가 없어요").foregroundColor(.secondary).frame(maxWidth: .infinity).padding(.top, 160 * scale) }
+        else {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 32 * scale), GridItem(.flexible())], spacing: 36 * scale) {
+                ForEach(viewModel.books) { book in
+                    Button { onShowBookDetail(book.bookId) } label: {
+                        VStack(alignment: .leading, spacing: 8 * scale) { BookCoverView(urlString: book.coverImageUrl, width: 132 * scale, height: 177 * scale); Text(book.title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 13 * scale)).lineLimit(2); Text(book.author).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11 * scale)).foregroundColor(.secondary) }
+                    }.buttonStyle(.plain).foregroundColor(.black).onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
+                }
             }
         }
-        .frame(width: 304 * scale, alignment: .leading)
-        .padding(.top, 39 * scale)
-        .padding(.leading, 44 * scale)
     }
 }
 

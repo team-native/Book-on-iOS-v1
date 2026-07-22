@@ -8,17 +8,18 @@ public struct MainHomeView: View {
     private let onShowSearch: () -> Void
     private let onShowNotifications: () -> Void
     private let onShowNewArrivals: () -> Void
-    private let onShowBookDetail: () -> Void
+    private let onShowBookDetail: (Int) -> Void
 
     public init(
         homeService: HomeService = HomeService(),
+        booksService: BooksService = BooksService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
-        onShowBookDetail: @escaping () -> Void = {}
+        onShowBookDetail: @escaping (Int) -> Void = { _ in }
     ) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService))
+        _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService, booksService: booksService))
         self.onSelectTab = onSelectTab
         self.onShowSearch = onShowSearch
         self.onShowNotifications = onShowNotifications
@@ -221,7 +222,7 @@ public struct MainHomeView: View {
     }
 
     private func bookSlot(book: BookRecommendation, scale: CGFloat) -> some View {
-        Button(action: onShowBookDetail) {
+        Button(action: { onShowBookDetail(book.bookId) }) {
             VStack(alignment: .leading, spacing: 0) {
                 AsyncImage(url: book.coverImageUrl.flatMap(URL.init(string:))) { image in
                     image.resizable().scaledToFill()
@@ -276,9 +277,13 @@ public struct MainHomeView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 16 * scale) {
-                    popularBook(title: "소년이 온다", detail: "한강 · 재고 3권", color: Color(red: 110/255, green: 110/255, blue: 110/255), scale: scale)
-                    popularBook(title: "데미안", detail: "헤르만 헤세 · 재고 1권", color: Color(red: 95/255, green: 67/255, blue: 67/255), scale: scale)
-                    popularBook(title: "클린 코더", detail: "로버트 C. 마틴 · 재고 2권", color: Color(red: 78/255, green: 91/255, blue: 103/255), scale: scale)
+                    if viewModel.isLoading && viewModel.popularBooks.isEmpty {
+                        ProgressView().frame(width: 338 * scale, height: 76 * scale)
+                    } else if viewModel.popularBooks.isEmpty {
+                        Text("인기 도서를 불러오지 못했어요.").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary).frame(width: 338 * scale, height: 76 * scale)
+                    } else {
+                        ForEach(viewModel.popularBooks) { book in popularBook(book: book, scale: scale) }
+                    }
                 }
                 .padding(.leading, 27 * scale)
                 .padding(.vertical, 2 * scale)
@@ -289,17 +294,15 @@ public struct MainHomeView: View {
         .frame(width: 338 * scale)
     }
 
-    private func popularBook(title: String, detail: String, color: Color, scale: CGFloat) -> some View {
-        Button(action: onShowBookDetail) {
+    private func popularBook(book: BookSummary, scale: CGFloat) -> some View {
+        Button(action: { onShowBookDetail(book.bookId) }) {
             HStack(spacing: 8 * scale) {
-                color
-                    .frame(width: 50 * scale, height: 64 * scale)
-                    .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
+                BookCoverView(urlString: book.coverImageUrl, width: 50 * scale, height: 64 * scale, cornerRadius: 10 * scale)
                 VStack(alignment: .leading, spacing: 10 * scale) {
-                    Text(title)
+                    Text(book.title)
                         .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                         .foregroundColor(.black)
-                    Text(detail)
+                    Text("\(book.author) · 재고 \(book.availableQuantity)권")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
                         .foregroundColor(Color(red: 176/255, green: 176/255, blue: 181/255))
                 }
