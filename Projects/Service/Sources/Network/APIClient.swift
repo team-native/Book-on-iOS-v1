@@ -60,7 +60,9 @@ public struct APIClient: Sendable {
         guard 200..<300 ~= httpResponse.statusCode else {
             let errorResponse = try? decoder.decode(APIErrorResponse.self, from: data)
 
-            if endpoint.requiresAuthorization && httpResponse.statusCode == 401 {
+            if endpoint.requiresAuthorization,
+               httpResponse.statusCode == 401,
+               errorResponse?.errorCode == nil || errorResponse?.errorCode == 4010 {
                 try? tokenStore.deleteAll()
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: AuthSessionEvent.didExpire, object: nil)
