@@ -93,10 +93,13 @@ final class BookDetailViewModel: ObservableObject {
     @Published var isFavorite = false
     @Published var isLoading = false
     @Published var isUpdatingFavorite = false
+    @Published var isRequestingLoan = false
+    @Published var loanMessage: String?
     @Published var errorMessage: String?
     let bookId: Int
     private let service: BooksService
-    init(bookId: Int, service: BooksService) { self.bookId = bookId; self.service = service }
+    private let loanService: LoanService
+    init(bookId: Int, service: BooksService, loanService: LoanService = LoanService()) { self.bookId = bookId; self.service = service; self.loanService = loanService }
     func load() async {
         isLoading = true; errorMessage = nil
         do { let value = try await service.fetchBookDetail(bookId: bookId); book = value; isFavorite = value.favorite }
@@ -111,6 +114,17 @@ final class BookDetailViewModel: ObservableObject {
             isFavorite = result.favorite
         } catch { errorMessage = error.localizedDescription }
         isUpdatingFavorite = false
+    }
+    func requestLoan() async {
+        guard !isRequestingLoan else { return }
+        isRequestingLoan = true; errorMessage = nil; loanMessage = nil
+        do {
+            let result = try await loanService.requestLoan(bookId: bookId)
+            loanMessage = "대출이 완료됐어요. 반납 예정일은 \(result.dueDate)입니다."
+            let value = try? await service.fetchBookDetail(bookId: bookId)
+            if let value { book = value }
+        } catch { errorMessage = error.localizedDescription }
+        isRequestingLoan = false
     }
 }
 
