@@ -13,13 +13,14 @@ public struct MainHomeView: View {
     public init(
         homeService: HomeService = HomeService(),
         booksService: BooksService = BooksService(),
+        meService: MeService = MeService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
         onShowBookDetail: @escaping (Int) -> Void = { _ in }
     ) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService, booksService: booksService))
+        _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService, booksService: booksService, meService: meService))
         self.onSelectTab = onSelectTab
         self.onShowSearch = onShowSearch
         self.onShowNotifications = onShowNotifications
@@ -88,7 +89,7 @@ public struct MainHomeView: View {
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
                     .frame(height: 20 * scale, alignment: .topLeading)
-                Text("홍길동님")
+                Text("\(viewModel.user?.name ?? "사용자")님")
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24 * scale))
                     .foregroundColor(.black)
                     .padding(.top, 5 * scale)
@@ -191,7 +192,7 @@ public struct MainHomeView: View {
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
-            Text("홍길동님의 대출 이력을 분석해 골랐어요")
+            Text("\(viewModel.user?.name ?? "사용자")님의 대출 이력을 분석해 골랐어요")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                 .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
                 .padding(.top, 4 * scale)

@@ -7,11 +7,14 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var myInfo: Read365MyInfo?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var me: MeData?
 
     private let service: MarathonService
+    private let meService: MeService
 
-    init(service: MarathonService) {
+    init(service: MarathonService, meService: MeService) {
         self.service = service
+        self.meService = meService
     }
 
     func load() async {
@@ -20,10 +23,11 @@ private final class MarathonViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            async let marathonRequest = service.fetchMarathon()
-            async let myInfoRequest = service.fetchMyInfo()
-            marathon = try await marathonRequest
-            myInfo = try await myInfoRequest
+            me = try await meService.fetchMe()
+            async let marathonRequest = try? service.fetchMarathon()
+            async let myInfoRequest = try? service.fetchMyInfo()
+            marathon = await marathonRequest
+            myInfo = await myInfoRequest
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -45,10 +49,11 @@ public struct MyView: View {
 
     public init(
         marathonService: MarathonService = MarathonService(),
+        meService: MeService = MeService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onLogout: @escaping () -> Void = {}
     ) {
-        _marathonViewModel = StateObject(wrappedValue: MarathonViewModel(service: marathonService))
+        _marathonViewModel = StateObject(wrappedValue: MarathonViewModel(service: marathonService, meService: meService))
         self.onSelectTab = onSelectTab
         self.onLogout = onLogout
     }
@@ -67,11 +72,11 @@ public struct MyView: View {
                         .buttonStyle(.plain)
                     }
                     VStack(alignment: .leading, spacing: 5 * scale) {
-                        Text("\(marathonViewModel.myInfo?.profile.name ?? "사용자") 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
+                        Text("\(marathonViewModel.me?.user.name ?? marathonViewModel.myInfo?.profile.name ?? "사용자") 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
                         Text(profileDetail).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
                     }
                 }.offset(x: 23 * scale, y: 108 * scale)
-                ProfileStatsCard(stats: [("대출 중", "3권"), ("반납 임박", "2권"), ("누적 대출", "23권")], scale: scale).frame(width: 346 * scale).offset(x: 23 * scale, y: 188 * scale)
+                ProfileStatsCard(stats: profileStats, scale: scale).frame(width: 346 * scale).offset(x: 23 * scale, y: 188 * scale)
                 marathonCard(scale: scale).offset(x: 23 * scale, y: 288 * scale)
                 VStack(spacing: 0) {
                     ForEach(menuItems, id: \.self) { item in
@@ -152,10 +157,21 @@ public struct MyView: View {
     }
 
     private var profileDetail: String {
+        if let department = marathonViewModel.me?.user.department { return department }
         let profile = marathonViewModel.myInfo?.profile
         let grade = profile?.memGrade.map { "\($0)학년" }
         let schoolClass = profile?.memClass.map { "\($0)반" }
         return [grade, schoolClass].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    private var profileStats: [(String, String)] {
+        let summary = marathonViewModel.me?.loanSummary
+        let dueText = summary?.nearestDueDday.map { "D-\($0)" } ?? "-"
+        return [
+            ("대출 중", "\(summary?.currentLoanCount ?? 0)권"),
+            ("연체", "\(summary?.overdueCount ?? 0)권"),
+            ("최근 반납", dueText),
+        ]
     }
 }
 
