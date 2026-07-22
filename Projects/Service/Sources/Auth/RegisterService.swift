@@ -26,6 +26,28 @@ public struct RegisterRequest: Encodable, Sendable {
 }
 
 public struct RegisterResponse: Decodable, Sendable {
+    public let sessionId: String
+    public let expiresAt: String
+    public let email: String
+
+    public init(sessionId: String, expiresAt: String, email: String) {
+        self.sessionId = sessionId
+        self.expiresAt = expiresAt
+        self.email = email
+    }
+}
+
+public struct RegisterVerificationRequest: Encodable, Sendable {
+    public let sessionId: String
+    public let passcode: String
+
+    public init(sessionId: String, passcode: String) {
+        self.sessionId = sessionId
+        self.passcode = passcode
+    }
+}
+
+public struct RegisterVerificationResponse: Decodable, Sendable {
     public let userId: Int
     public let email: String
     public let name: String
@@ -52,6 +74,17 @@ public struct RegisterService: Sendable {
             body: request
         )
         let response = try await client.send(endpoint, as: RegisterResponse.self)
+        return response.data
+    }
+
+    @discardableResult
+    public func verify(_ request: RegisterVerificationRequest) async throws -> RegisterVerificationResponse {
+        let endpoint = try APIEndpoint.json(
+            path: "/auth/register/verify",
+            method: .post,
+            body: request
+        )
+        let response = try await client.send(endpoint, as: RegisterVerificationResponse.self)
         return response.data
     }
 }
