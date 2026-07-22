@@ -20,6 +20,7 @@ struct RootView: View {
 
     @State private var isSplashFinished = false
     @State private var isSigningUp = false
+    @State private var isResettingPassword = false
     @State private var authenticationState: AuthenticationState = .checking
     @State private var showsSessionExpiredAlert = false
 
@@ -35,8 +36,14 @@ struct RootView: View {
                 NavigationStack {
                     LoginView(
                         onLogin: { _, _ in authenticationState = .signedIn },
+                        onForgotPassword: { isResettingPassword = true },
                         onSignUp: { isSigningUp = true }
                     )
+                        .navigationDestination(isPresented: $isResettingPassword) {
+                            PasswordResetView(onCompleted: {
+                                isResettingPassword = false
+                            })
+                        }
                         .navigationDestination(isPresented: $isSigningUp) {
                             SignUpFlowView(onFinished: {
                                 isSigningUp = false
@@ -54,6 +61,7 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: AuthSessionEvent.didExpire)) { _ in
             authenticationState = .signedOut
             isSigningUp = false
+            isResettingPassword = false
             showsSessionExpiredAlert = true
         }
         .alert("로그인 세션 만료", isPresented: $showsSessionExpiredAlert) {
@@ -75,6 +83,7 @@ struct RootView: View {
     private func signOut() {
         try? tokenStore.deleteAll()
         isSigningUp = false
+        isResettingPassword = false
         authenticationState = .signedOut
     }
 }
