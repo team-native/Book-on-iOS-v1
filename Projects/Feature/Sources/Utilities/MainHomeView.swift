@@ -1,7 +1,9 @@
 import SwiftUI
+import Service
 
 public struct MainHomeView: View {
     @State private var searchText = ""
+    @StateObject private var viewModel: HomeViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onShowSearch: () -> Void
     private let onShowNotifications: () -> Void
@@ -9,12 +11,14 @@ public struct MainHomeView: View {
     private let onShowBookDetail: () -> Void
 
     public init(
+        homeService: HomeService = HomeService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
         onShowBookDetail: @escaping () -> Void = {}
     ) {
+        _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService))
         self.onSelectTab = onSelectTab
         self.onShowSearch = onShowSearch
         self.onShowNotifications = onShowNotifications
@@ -42,6 +46,14 @@ public struct MainHomeView: View {
                         )
                         .padding(.top, 20 * scale)
 
+                        if let errorMessage = viewModel.errorMessage,
+                           viewModel.home == nil,
+                           viewModel.notice == nil,
+                           viewModel.displayedRecommendations.isEmpty {
+                            errorBanner(message: errorMessage, scale: scale)
+                                .padding(.top, 10 * scale)
+                        }
+
                         Button(action: {}) { noticeCard(scale: scale) }
                             .buttonStyle(.plain)
                             .padding(.top, 19 * scale)
@@ -63,6 +75,9 @@ public struct MainHomeView: View {
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .ignoresSafeArea()
+        .task {
+            await viewModel.load()
+        }
     }
 
     private func header(scale: CGFloat) -> some View {
@@ -120,7 +135,7 @@ public struct MainHomeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
                 VStack(alignment: .leading, spacing: 4 * scale) {
                     Text("도서부 공지").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale))
-                    Text("2026. 07. 01 · 도서부")
+                    Text(viewModel.notice?.createdAt ?? (viewModel.isLoading ? "불러오는 중..." : "새 공지 없음"))
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
                         .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
                 }
@@ -132,10 +147,10 @@ public struct MainHomeView: View {
                     .background(FeatureAsset.Color.buttonColor.swiftUIColor)
                     .clipShape(RoundedRectangle(cornerRadius: 7 * scale))
             }
-            Text("여름방학 도서 대출 기간 연장 안내")
+            Text(viewModel.notice?.title ?? (viewModel.noticeFailed ? "공지를 불러오지 못했어요" : "등록된 공지가 없어요"))
                 .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale))
                 .padding(.top, 18 * scale)
-            Text("방학 기간 동안 1인당 최대 5권, 대출 기간이 14일로 연장됩니다.\n반납은 개학일 전까지 완료해 주세요.")
+            Text(viewModel.notice?.summary ?? (viewModel.noticeFailed ? "잠시 후 다시 시도해주세요." : "새로운 도서부 공지가 등록되면 이곳에 표시됩니다."))
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                 .foregroundColor(Color(red: 122 / 255, green: 122 / 255, blue: 129 / 255))
                 .lineSpacing(4 * scale)
@@ -182,9 +197,19 @@ public struct MainHomeView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: 32 * scale) {
-                    bookSlot(imageName: "AIRecommendationNamiya", title: "나미야 잡화점의 기적", author: "히가시노 게이고", scale: scale)
-                    bookSlot(imageName: "AIRecommendationAlmond", title: "아몬드", author: "손원평", scale: scale)
-                    bookSlot(imageName: "AIRecommendationTonight", title: "오늘 밤, 세계에서\n이 사랑이 사라진다 해도", author: "이치조 미사키", scale: scale)
+                    if viewModel.isLoading && viewModel.displayedRecommendations.isEmpty {
+                        ProgressView()
+                            .frame(width: 338 * scale, height: 220 * scale)
+                    } else if viewModel.displayedRecommendations.isEmpty {
+                        Text(viewModel.recommendationsFailed ? "추천 도서를 불러오지 못했어요." : "아직 추천 도서가 없어요.")
+                            .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
+                            .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
+                            .frame(width: 338 * scale, height: 160 * scale, alignment: .center)
+                    } else {
+                        ForEach(viewModel.displayedRecommendations) { book in
+                            bookSlot(book: book, scale: scale)
+                        }
+                    }
                 }
                 .padding(.leading, 27 * scale)
                 .padding(.trailing, 27 * scale)
@@ -195,26 +220,47 @@ public struct MainHomeView: View {
         .frame(width: 338 * scale, alignment: .leading)
     }
 
-    private func bookSlot(imageName: String, title: String, author: String, scale: CGFloat) -> some View {
+    private func bookSlot(book: BookRecommendation, scale: CGFloat) -> some View {
         Button(action: onShowBookDetail) {
             VStack(alignment: .leading, spacing: 0) {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 94 * scale, height: 160 * scale)
-                    .clipped()
-                Text(title)
+                AsyncImage(url: book.coverImageUrl.flatMap(URL.init(string:))) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 4 * scale)
+                        .fill(Color(red: 235/255, green: 235/255, blue: 235/255))
+                        .overlay(Image(systemName: "book.closed").foregroundColor(.secondary))
+                }
+                .frame(width: 94 * scale, height: 160 * scale)
+                .clipped()
+                Text(book.title)
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .lineLimit(2)
                     .frame(width: 118 * scale, alignment: .leading)
                     .padding(.top, 18 * scale)
-                Text(author)
+                Text(book.author)
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
                     .padding(.top, 4 * scale)
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private func errorBanner(message: String, scale: CGFloat) -> some View {
+        HStack(spacing: 8 * scale) {
+            Image(systemName: "exclamationmark.circle")
+            Text(message).lineLimit(2)
+            Spacer(minLength: 0)
+            Button("재시도") {
+                Task { await viewModel.load() }
+            }
+        }
+        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11 * scale))
+        .foregroundColor(Color(red: 142/255, green: 71/255, blue: 71/255))
+        .padding(10 * scale)
+        .frame(width: 338 * scale)
+        .background(Color(red: 255/255, green: 241/255, blue: 241/255))
+        .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
     }
 
     private func popularSection(scale: CGFloat) -> some View {
