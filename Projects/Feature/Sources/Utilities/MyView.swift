@@ -9,15 +9,19 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published private(set) var me: MeData?
     @Published private(set) var totalLoanCount = 0
+    @Published private(set) var isLinkingRead365 = false
+    @Published private(set) var read365LinkError: String?
 
     private let service: MarathonService
     private let meService: MeService
     private let loanService: LoanService
+    private let read365Service: Read365Service
 
-    init(service: MarathonService, meService: MeService, loanService: LoanService) {
+    init(service: MarathonService, meService: MeService, loanService: LoanService, read365Service: Read365Service) {
         self.service = service
         self.meService = meService
         self.loanService = loanService
+        self.read365Service = read365Service
     }
 
     func load() async {
@@ -38,6 +42,24 @@ private final class MarathonViewModel: ObservableObject {
         }
         isLoading = false
     }
+
+    func linkRead365(id: String, password: String) async -> Bool {
+        guard !isLinkingRead365 else { return false }
+        isLinkingRead365 = true
+        read365LinkError = nil
+
+        do {
+            _ = try await read365Service.login(id: id, password: password)
+            marathon = try await service.fetchMarathon()
+            myInfo = try await service.fetchMyInfo()
+            isLinkingRead365 = false
+            return true
+        } catch {
+            read365LinkError = error.localizedDescription
+            isLinkingRead365 = false
+            return false
+        }
+    }
 }
 
 public struct MyView: View {
@@ -47,6 +69,7 @@ public struct MyView: View {
     @State private var showsFavorites = false
     @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
+    @State private var showsRead365Link = false
     @StateObject private var marathonViewModel: MarathonViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onLogout: () -> Void
@@ -55,6 +78,7 @@ public struct MyView: View {
         marathonService: MarathonService = MarathonService(),
         meService: MeService = MeService(),
         loanService: LoanService = LoanService(),
+        read365Service: Read365Service = Read365Service(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onLogout: @escaping () -> Void = {}
     ) {
@@ -62,7 +86,8 @@ public struct MyView: View {
             wrappedValue: MarathonViewModel(
                 service: marathonService,
                 meService: meService,
-                loanService: loanService
+                loanService: loanService,
+                read365Service: read365Service
             )
         )
         self.onSelectTab = onSelectTab
@@ -131,6 +156,20 @@ public struct MyView: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showsRead365Link) {
+            Read365LinkView(
+                isSubmitting: marathonViewModel.isLinkingRead365,
+                serverError: marathonViewModel.read365LinkError,
+                onBack: { showsRead365Link = false },
+                onLink: { id, password in
+                    Task {
+                        if await marathonViewModel.linkRead365(id: id, password: password) {
+                            showsRead365Link = false
+                        }
+                    }
+                }
+            )
+        }
         .alert("로그아웃하시겠어요?", isPresented: $showsLogoutConfirmation) {
             Button("취소", role: .cancel) {}
             Button("로그아웃", role: .destructive, action: onLogout)
@@ -158,12 +197,19 @@ public struct MyView: View {
                 if marathonViewModel.isLoading {
                     ProgressView().scaleEffect(0.8)
                 } else {
-                    Toggle("", isOn: .constant(isLinked))
+                    Toggle(
+                        "",
+                        isOn: Binding(
+                            get: { isLinked },
+                            set: { shouldLink in
+                                if shouldLink && !isLinked { showsRead365Link = true }
+                            }
+                        )
+                    )
                         .labelsHidden()
                         .tint(FeatureAsset.Color.buttonColor.swiftUIColor)
                         .scaleEffect(0.78)
                         .frame(width: 44 * scale, height: 28 * scale)
-                        .allowsHitTesting(false)
                 }
             }
             .frame(height: 20 * scale)
