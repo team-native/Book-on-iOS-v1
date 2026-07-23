@@ -42,7 +42,6 @@ private final class MarathonViewModel: ObservableObject {
 
 public struct MyView: View {
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
-    @State private var isMarathonLinked = false
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
@@ -145,27 +144,82 @@ public struct MyView: View {
         let isLinked = marathonViewModel.marathon?.activeCount ?? 0 > 0
 
         return VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("🏃  2026 독서마라톤").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
+            HStack(spacing: 6 * scale) {
+                FeatureAsset.Image.readingMarathonLogo.swiftUIImage
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20 * scale, height: 20 * scale)
+
+                Text("2026 독서마라톤")
+                    .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
+
                 Spacer()
-                if isLinked {
-                    Text("참여 중").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 10 * scale)).foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor).padding(.horizontal, 9 * scale).padding(.vertical, 5 * scale).background(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 6 * scale))
-                } else if marathonViewModel.isLoading {
+
+                if marathonViewModel.isLoading {
                     ProgressView().scaleEffect(0.8)
+                } else {
+                    Toggle("", isOn: .constant(isLinked))
+                        .labelsHidden()
+                        .tint(FeatureAsset.Color.buttonColor.swiftUIColor)
+                        .scaleEffect(0.78)
+                        .frame(width: 44 * scale, height: 28 * scale)
+                        .allowsHitTesting(false)
                 }
             }
+            .frame(height: 20 * scale)
+
             if isLinked {
-                HStack { Text("\(activeMarathon?.course?.courseName ?? "진행 중") · \(currentPage) / \(targetPage)쪽"); Spacer(); Text("\(Int(progress * 100))%").foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor) }.font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 15 * scale)
-                GeometryReader { p in ZStack(alignment: .leading) { Capsule().fill(Color(red: 217/255, green: 217/255, blue: 217/255)); Capsule().fill(FeatureAsset.Color.buttonColor.swiftUIColor).frame(width: p.size.width * progress) } }.frame(height: 8 * scale).padding(.top, 14 * scale)
-                Text("완주까지 \(max(targetPage - currentPage, 0))쪽 남았어요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 12 * scale)
+                HStack {
+                    Text("\(activeMarathon?.course?.courseName ?? "진행 중") · \(currentPage) / \(targetPage)쪽")
+                    Spacer()
+                    Text("\(Int(progress * 100))%")
+                        .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+                }
+                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                .foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255))
+                .padding(.top, 10 * scale)
+
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color(red: 217/255, green: 217/255, blue: 217/255))
+                        Capsule()
+                            .fill(FeatureAsset.Color.buttonColor.swiftUIColor)
+                            .frame(width: proxy.size.width * progress)
+                    }
+                }
+                .frame(height: 8 * scale)
+                .padding(.top, 9 * scale)
+
+                Text("완주까지 \(max(targetPage - currentPage, 0))쪽 남았어요")
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .padding(.top, 8 * scale)
             } else {
-                Text(marathonViewModel.errorMessage ?? "아직 연동하지 않았어요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255)).padding(.top, 16 * scale)
-                Text("회원가입 또는 계정 설정에서 독서마라톤을 연동해주세요")
+                Text(marathonViewModel.errorMessage ?? "아직 연동하지 않았어요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255))
-                    .padding(.top, 14 * scale)
+                    .padding(.top, 10 * scale)
+
+                Capsule()
+                    .fill(Color(red: 217/255, green: 217/255, blue: 217/255))
+                    .frame(height: 8 * scale)
+                    .padding(.top, 9 * scale)
+
+                Text("토글을 켜면 독서마라톤 계정을 연동할 수 있어요")
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .padding(.top, 8 * scale)
             }
-        }.padding(18 * scale).frame(width: 346 * scale, height: 126 * scale, alignment: .topLeading).background(Color(red: 251/255, green: 251/255, blue: 252/255)).overlay(RoundedRectangle(cornerRadius: 16 * scale).stroke(Color(red: 243/255, green: 243/255, blue: 245/255))).clipShape(RoundedRectangle(cornerRadius: 16 * scale))
+        }
+        .padding(.horizontal, 18 * scale)
+        .padding(.vertical, 15 * scale)
+        .frame(width: 346 * scale, height: 126 * scale, alignment: .topLeading)
+        .background(Color(red: 251/255, green: 251/255, blue: 252/255))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16 * scale)
+                .stroke(Color(red: 243/255, green: 243/255, blue: 245/255), lineWidth: scale)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
     }
 
     private var profileDetail: String {
