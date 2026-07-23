@@ -88,24 +88,33 @@ struct SignUpStep2View: View {
                         }
                     )
 
-                    if let submissionError {
-                        InlineErrorText(message: submissionError, scale: scale)
-                    }
                 }
                 .offset(x: 31 * scale, y: 283 * scale)
 
                 KeyboardAvoidingBottomButton(
                     screenHeight: geo.size.height,
-                    contentBottomY: (734 + 52) * scale,
+                    contentBottomY: (694 + 32 + 8 + 52) * scale,
                     keyboard: keyboard
                 ) {
-                    PrimaryButton(
-                        title: isSubmitting ? "인증번호 발송 중..." : "인증번호 받기",
-                        scale: scale,
-                        isEnabled: !isSubmitting,
-                        action: validateAndProceed
-                    )
-                        .offset(x: 47 * scale, y: 734 * scale)
+                    VStack(alignment: .leading, spacing: 8 * scale) {
+                        Group {
+                            if let submissionError {
+                                InlineErrorText(message: submissionError, scale: scale)
+                                    .lineLimit(2)
+                            } else {
+                                Color.clear
+                            }
+                        }
+                        .frame(width: 300 * scale, height: 32 * scale, alignment: .bottomLeading)
+
+                        PrimaryButton(
+                            title: isSubmitting ? "인증번호 발송 중..." : "인증번호 받기",
+                            scale: scale,
+                            isEnabled: !isSubmitting,
+                            action: validateAndProceed
+                        )
+                    }
+                    .offset(x: 47 * scale, y: 694 * scale)
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
