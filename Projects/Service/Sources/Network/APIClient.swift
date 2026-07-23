@@ -50,6 +50,14 @@ public struct APIClient: Sendable {
         _ endpoint: APIEndpoint,
         as type: ResponseData.Type = ResponseData.self
     ) async throws -> APIResponse<ResponseData> {
+        try await send(endpoint, as: type, allowsTokenRefresh: true)
+    }
+
+    private func send<ResponseData: Decodable>(
+        _ endpoint: APIEndpoint,
+        as type: ResponseData.Type,
+        allowsTokenRefresh: Bool
+    ) async throws -> APIResponse<ResponseData> {
         let request = try makeURLRequest(for: endpoint)
         let (data, response) = try await session.data(for: request)
 
@@ -63,6 +71,10 @@ public struct APIClient: Sendable {
             if endpoint.requiresAuthorization,
                httpResponse.statusCode == 401,
                errorResponse?.errorCode == nil || errorResponse?.errorCode == 4010 {
+                if allowsTokenRefresh, try await refreshTokens() {
+                    return try await send(endpoint, as: type, allowsTokenRefresh: false)
+                }
+
                 try? tokenStore.deleteAll()
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: AuthSessionEvent.didExpire, object: nil)
@@ -94,6 +106,34 @@ public struct APIClient: Sendable {
         } catch {
             throw NetworkError.decoding(error)
         }
+    }
+
+    private func refreshTokens() async throws -> Bool {
+        guard let refreshToken = try tokenStore.refreshToken, !refreshToken.isEmpty else {
+            return false
+        }
+
+        let endpoint = try APIEndpoint.json(
+            path: "/auth/refresh",
+            method: .post,
+            body: TokenRefreshRequest(refreshToken: refreshToken)
+        )
+        let request = try makeURLRequest(for: endpoint)
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              200..<300 ~= httpResponse.statusCode,
+              let refreshed = try? decoder.decode(APIResponse<TokenRefreshData>.self, from: data),
+              refreshed.errorCode == 0
+        else {
+            return false
+        }
+
+        try tokenStore.save(
+            accessToken: refreshed.data.accessToken,
+            refreshToken: refreshed.data.refreshToken
+        )
+        return true
     }
 
     private func makeURLRequest(for endpoint: APIEndpoint) throws -> URLRequest {
@@ -137,4 +177,13 @@ public struct APIClient: Sendable {
 
         return request
     }
+}
+
+private struct TokenRefreshRequest: Encodable {
+    let refreshToken: String
+}
+
+private struct TokenRefreshData: Decodable {
+    let accessToken: String
+    let refreshToken: String
 }

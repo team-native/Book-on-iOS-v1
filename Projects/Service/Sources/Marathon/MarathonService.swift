@@ -24,6 +24,7 @@ public struct MarathonData: Decodable, Sendable {
 }
 
 public struct Read365MyProfile: Decodable, Sendable {
+    public let id: String?
     public let name: String
     public let memGrade: String?
     public let memClass: String?

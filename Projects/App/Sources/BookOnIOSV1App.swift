@@ -25,6 +25,7 @@ struct RootView: View {
     @State private var showsSessionExpiredAlert = false
 
     private let tokenStore = AuthTokenStore()
+    private let loginService = LoginService()
 
     var body: some View {
         ZStack {
@@ -81,9 +82,11 @@ struct RootView: View {
     }
 
     private func signOut() {
-        try? tokenStore.deleteAll()
         isSigningUp = false
         isResettingPassword = false
         authenticationState = .signedOut
+        Task {
+            try? await loginService.logout()
+        }
     }
 }
