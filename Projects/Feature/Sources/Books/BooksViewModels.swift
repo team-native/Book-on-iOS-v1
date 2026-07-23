@@ -47,6 +47,8 @@ final class SearchBooksViewModel: ObservableObject {
     private var keyword = ""
     init(service: BooksService) { self.service = service }
     func search(_ keyword: String) async {
+        let keyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !keyword.isEmpty else { return }
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let result = try await service.searchBooks(keyword: keyword); books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
