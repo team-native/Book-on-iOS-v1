@@ -67,6 +67,7 @@ public struct AppShellView: View {
     }
 
     private func selectTab(_ item: BottomTabBar.Item) {
+        guard item != selectedTab else { return }
         selectedTab = item
     }
 
