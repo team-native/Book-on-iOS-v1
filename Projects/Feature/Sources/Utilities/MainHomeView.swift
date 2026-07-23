@@ -71,8 +71,6 @@ public struct MainHomeView: View {
                     .padding(.bottom, 112 * scale)
                 }
 
-                BottomTabBar(selected: .home, scale: scale, action: onSelectTab)
-                    .frame(height: 89 * scale, alignment: .top)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }

@@ -131,7 +131,6 @@ public struct MyView: View {
                     )
                 }.frame(width: 346 * scale).offset(x: 23 * scale, y: 426 * scale)
                 Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
-                BottomTabBar(selected: .my, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
         .ignoresSafeArea()

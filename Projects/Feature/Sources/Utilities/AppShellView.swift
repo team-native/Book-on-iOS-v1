@@ -27,27 +27,37 @@ public struct AppShellView: View {
     }
 
     public var body: some View {
-        Group {
-            switch selectedTab {
-            case .home:
-                MainHomeView(
-                    onSelectTab: selectTab,
-                    onShowSearch: { destination = .search },
-                    onShowNotifications: { destination = .notifications },
-                    onShowNewArrivals: { destination = .newArrivals },
-                    onShowBookDetail: { destination = .bookDetail($0) }
-                )
-            case .ranking:
-                RankingView(onSelectTab: selectTab)
-            case .library:
-                LibraryView(
-                    onSelectTab: selectTab,
-                    onShowBookDetail: { destination = .bookDetail($0) }
-                )
-            case .my:
-                MyView(onSelectTab: selectTab, onLogout: onLogout)
+        GeometryReader { geometry in
+            let scale = geometry.size.width / 392
+
+            ZStack(alignment: .bottom) {
+                Group {
+                    switch selectedTab {
+                    case .home:
+                        MainHomeView(
+                            onSelectTab: selectTab,
+                            onShowSearch: { destination = .search },
+                            onShowNotifications: { destination = .notifications },
+                            onShowNewArrivals: { destination = .newArrivals },
+                            onShowBookDetail: { destination = .bookDetail($0) }
+                        )
+                    case .ranking:
+                        RankingView(onSelectTab: selectTab)
+                    case .library:
+                        LibraryView(
+                            onSelectTab: selectTab,
+                            onShowBookDetail: { destination = .bookDetail($0) }
+                        )
+                    case .my:
+                        MyView(onSelectTab: selectTab, onLogout: onLogout)
+                    }
+                }
+
+                BottomTabBar(selected: selectedTab, scale: scale, action: selectTab)
+                    .frame(height: 89 * scale, alignment: .top)
             }
         }
+        .ignoresSafeArea()
         .fullScreenCover(item: $destination) { destination in
             switch destination {
             case .search:
@@ -67,6 +77,7 @@ public struct AppShellView: View {
     }
 
     private func selectTab(_ item: BottomTabBar.Item) {
+        guard item != selectedTab else { return }
         selectedTab = item
     }
 

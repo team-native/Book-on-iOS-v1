@@ -54,7 +54,6 @@ public struct RankingView: View {
                     podium(scale: scale).offset(x: 28 * scale, y: 166 * scale)
                     rankingList(scale: scale).offset(x: 25 * scale, y: 406 * scale)
                 }
-                BottomTabBar(selected: .ranking, scale: scale, action: onSelectTab).frame(width: 392 * scale, height: 89 * scale).offset(y: 763 * scale)
             }
         }
         .ignoresSafeArea()

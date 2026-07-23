@@ -37,8 +37,6 @@ public struct LibraryView: View {
                     .padding(.top, 70 * scale)
                     .padding(.bottom, 110 * scale)
                 }
-                BottomTabBar(selected: .library, scale: scale, action: onSelectTab)
-                    .frame(height: 89 * scale, alignment: .top)
             }
         }
         .ignoresSafeArea()
