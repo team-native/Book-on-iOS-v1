@@ -88,7 +88,9 @@ public struct LoanHistoryView: View {
                 title: loan.title,
                 author: loan.author,
                 dueText: "반납 \(loan.dueDate)",
-                badge: loan.extensionAvailable ? (viewModel.extendingLoanId == loan.loanId ? "연장 중" : "연장하기") : "D\(loan.dDay)",
+                badge: loan.extensionAvailable
+                    ? (viewModel.extendingLoanId == loan.loanId ? "연장 중" : "연장하기")
+                    : dDayText(loan.dDay),
                 scale: scale,
                 action: { Task { await viewModel.extend(loan) } }
             )
@@ -111,6 +113,12 @@ public struct LoanHistoryView: View {
 
     private func statusTitle(_ status: String) -> String {
         switch status { case "RETURNED": return "반납 완료"; case "OVERDUE": return "연체"; default: return "대출 중" }
+    }
+
+    private func dDayText(_ dDay: Int) -> String {
+        if dDay > 0 { return "D-\(dDay)" }
+        if dDay == 0 { return "D-Day" }
+        return "D+\(abs(dDay))"
     }
 }
 
