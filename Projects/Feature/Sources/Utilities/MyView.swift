@@ -8,13 +8,16 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var me: MeData?
+    @Published private(set) var totalLoanCount = 0
 
     private let service: MarathonService
     private let meService: MeService
+    private let loanService: LoanService
 
-    init(service: MarathonService, meService: MeService) {
+    init(service: MarathonService, meService: MeService, loanService: LoanService) {
         self.service = service
         self.meService = meService
+        self.loanService = loanService
     }
 
     func load() async {
@@ -26,8 +29,10 @@ private final class MarathonViewModel: ObservableObject {
             me = try await meService.fetchMe()
             async let marathonRequest = try? service.fetchMarathon()
             async let myInfoRequest = try? service.fetchMyInfo()
+            async let loanHistoryRequest = try? loanService.fetchHistory(status: "ALL", page: 1, size: 1)
             marathon = await marathonRequest
             myInfo = await myInfoRequest
+            totalLoanCount = await loanHistoryRequest?.pagination.totalCount ?? 0
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -50,10 +55,17 @@ public struct MyView: View {
     public init(
         marathonService: MarathonService = MarathonService(),
         meService: MeService = MeService(),
+        loanService: LoanService = LoanService(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onLogout: @escaping () -> Void = {}
     ) {
-        _marathonViewModel = StateObject(wrappedValue: MarathonViewModel(service: marathonService, meService: meService))
+        _marathonViewModel = StateObject(
+            wrappedValue: MarathonViewModel(
+                service: marathonService,
+                meService: meService,
+                loanService: loanService
+            )
+        )
         self.onSelectTab = onSelectTab
         self.onLogout = onLogout
     }
@@ -166,11 +178,13 @@ public struct MyView: View {
 
     private var profileStats: [(String, String)] {
         let summary = marathonViewModel.me?.loanSummary
-        let dueText = summary?.nearestDueDday.map { "D-\($0)" } ?? "-"
+        let dueSoonCount = marathonViewModel.me?.currentLoans.filter {
+            (0...3).contains($0.dDay)
+        }.count ?? 0
         return [
             ("대출 중", "\(summary?.currentLoanCount ?? 0)권"),
-            ("연체", "\(summary?.overdueCount ?? 0)권"),
-            ("최근 반납", dueText),
+            ("반납 임박", "\(dueSoonCount)권"),
+            ("누적 대출", "\(marathonViewModel.totalLoanCount)권"),
         ]
     }
 }
