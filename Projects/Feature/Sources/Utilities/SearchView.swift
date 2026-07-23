@@ -30,7 +30,9 @@ public struct SearchView: View {
             }
         }.ignoresSafeArea()
         .task { if didSearch { await viewModel.search(query) } }
-        .alert("검색할 책을 입력해주세요!", isPresented: $showsEmptyQueryAlert) { Button("확인", role: .cancel) {} }
+        .alert("검색할 자료명을 입력해주세요.", isPresented: $showsEmptyQueryAlert) {
+            Button("확인", role: .cancel) {}
+        }
     }
 
     @ViewBuilder private func content(scale: CGFloat) -> some View {
@@ -51,8 +53,14 @@ public struct SearchView: View {
 
     private func performSearch() {
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !keyword.isEmpty else { didSearch = false; showsEmptyQueryAlert = true; return }
-        didSearch = true; Task { await viewModel.search(keyword) }
+        guard !keyword.isEmpty else {
+            didSearch = false
+            showsEmptyQueryAlert = true
+            return
+        }
+        query = keyword
+        didSearch = true
+        Task { await viewModel.search(keyword) }
     }
 
     private func emptyState(scale: CGFloat) -> some View {
