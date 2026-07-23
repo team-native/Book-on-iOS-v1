@@ -38,6 +38,17 @@ public struct LoginResponse: Decodable, Sendable {
     }
 }
 
+public struct TokenRefreshResponse: Decodable, Sendable {
+    public let accessToken: String
+    public let refreshToken: String
+    public let tokenType: String
+    public let expiresIn: Int
+}
+
+private struct RefreshTokenRequest: Encodable {
+    let refreshToken: String
+}
+
 public struct LoginService: Sendable {
     private let client: APIClient
     private let tokenStore: AuthTokenStore
@@ -66,4 +77,43 @@ public struct LoginService: Sendable {
 
         return response.data
     }
+
+    @discardableResult
+    public func refresh() async throws -> TokenRefreshResponse {
+        guard let refreshToken = try tokenStore.refreshToken, !refreshToken.isEmpty else {
+            throw NetworkError.sessionExpired(message: nil)
+        }
+
+        let endpoint = try APIEndpoint.json(
+            path: "/auth/refresh",
+            method: .post,
+            body: RefreshTokenRequest(refreshToken: refreshToken)
+        )
+        let data = try await client.send(endpoint, as: TokenRefreshResponse.self).data
+        try tokenStore.save(accessToken: data.accessToken, refreshToken: data.refreshToken)
+        return data
+    }
+
+    public func logout() async throws {
+        guard let refreshToken = try tokenStore.refreshToken, !refreshToken.isEmpty else {
+            try tokenStore.deleteAll()
+            return
+        }
+
+        let endpoint = try APIEndpoint.json(
+            path: "/auth/logout",
+            method: .post,
+            body: RefreshTokenRequest(refreshToken: refreshToken)
+        )
+
+        do {
+            _ = try await client.send(endpoint, as: NoContent?.self)
+            try tokenStore.deleteAll()
+        } catch {
+            try? tokenStore.deleteAll()
+            throw error
+        }
+    }
 }
+
+public struct NoContent: Decodable, Sendable {}

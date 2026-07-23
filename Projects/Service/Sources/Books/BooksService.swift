@@ -17,12 +17,22 @@ public struct BooksService: Sendable {
         return try await client.send(APIEndpoint(path: "/books", queryItems: query), as: BookListData.self).data
     }
 
-    public func searchBooks(keyword: String, page: Int = 1, size: Int = 20) async throws -> BookListData {
-        let query = [
-            URLQueryItem(name: "keyword", value: keyword),
+    public func searchBooks(
+        keyword: String? = nil,
+        libraryNumber: String? = nil,
+        page: Int = 1,
+        size: Int = 20
+    ) async throws -> BookListData {
+        var query = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "size", value: String(size)),
         ]
+        if let keyword, !keyword.isEmpty {
+            query.append(URLQueryItem(name: "keyword", value: keyword))
+        }
+        if let libraryNumber, !libraryNumber.isEmpty {
+            query.append(URLQueryItem(name: "libraryNumber", value: libraryNumber))
+        }
         return try await client.send(APIEndpoint(path: "/books/search", queryItems: query), as: BookListData.self).data
     }
 
