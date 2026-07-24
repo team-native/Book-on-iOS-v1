@@ -1,10 +1,31 @@
 import SwiftUI
 import Service
 
+@MainActor
+final class ProfileImageCache {
+    static let shared = ProfileImageCache()
+    private var images: [URL: UIImage] = [:]
+
+    private init() {}
+
+    func image(for url: URL) -> UIImage? {
+        images[url]
+    }
+
+    func store(_ image: UIImage, for url: URL) {
+        images[url] = image
+    }
+
+    func removeAll() {
+        images.removeAll()
+    }
+}
+
 struct ProfileAvatar: View {
     var size: CGFloat = 30
     var scale: CGFloat = 1
     var imagePath: String?
+    var imageData: Data?
 
     var body: some View {
         ZStack {
@@ -14,7 +35,11 @@ struct ProfileAvatar: View {
                 .font(.system(size: size * 0.48 * scale))
                 .foregroundColor(.white)
 
-            if let url = profileImageURL {
+            if let imageData, let localImage = UIImage(data: imageData) {
+                Image(uiImage: localImage)
+                    .resizable()
+                    .scaledToFill()
+            } else if let url = profileImageURL {
                 RemoteProfileImage(url: url)
             }
         }
@@ -51,6 +76,12 @@ private struct RemoteProfileImage: View {
             }
         }
         .task(id: url) {
+            if let cachedImage = ProfileImageCache.shared.image(for: url) {
+                image = cachedImage
+                isLoading = false
+                return
+            }
+
             image = nil
             isLoading = true
             var request = URLRequest(url: url)
@@ -67,6 +98,7 @@ private struct RemoteProfileImage: View {
                 return
             }
             image = loadedImage
+            ProfileImageCache.shared.store(loadedImage, for: url)
             isLoading = false
         }
     }
