@@ -10,12 +10,12 @@ struct ProfileAvatar: View {
         ZStack {
             Color(red: 226/255, green: 226/255, blue: 227/255)
 
+            Image(systemName: "person.fill")
+                .font(.system(size: size * 0.48 * scale))
+                .foregroundColor(.white)
+
             if let url = profileImageURL {
                 RemoteProfileImage(url: url)
-            } else {
-                Image(systemName: "person.fill")
-                    .font(.system(size: size * 0.48 * scale))
-                    .foregroundColor(.white)
             }
         }
         .frame(width: size * scale, height: size * scale)
@@ -35,6 +35,7 @@ struct ProfileAvatar: View {
 private struct RemoteProfileImage: View {
     let url: URL
     @State private var image: UIImage?
+    @State private var isLoading = true
 
     var body: some View {
         Group {
@@ -42,23 +43,31 @@ private struct RemoteProfileImage: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-            } else {
+            } else if isLoading {
                 ProgressView()
                     .controlSize(.small)
+            } else {
+                Color.clear
             }
         }
         .task(id: url) {
+            image = nil
+            isLoading = true
             var request = URLRequest(url: url)
             request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.timeoutInterval = 10
+
             guard let (data, response) = try? await URLSession.shared.data(for: request),
                   let httpResponse = response as? HTTPURLResponse,
                   200..<300 ~= httpResponse.statusCode,
                   let loadedImage = UIImage(data: data)
             else {
                 image = nil
+                isLoading = false
                 return
             }
             image = loadedImage
+            isLoading = false
         }
     }
 }
