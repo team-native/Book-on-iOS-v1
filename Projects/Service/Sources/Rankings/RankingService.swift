@@ -5,6 +5,7 @@ public struct ReaderRanking: Decodable, Sendable, Identifiable {
     public let userId: Int
     public let name: String
     public let department: String
+    public let profileImageUrl: String?
     public let loanCount: Int
     public var id: Int { userId }
 }

@@ -11,6 +11,8 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var totalLoanCount = 0
     @Published private(set) var isLinkingRead365 = false
     @Published private(set) var read365LinkError: String?
+    @Published private(set) var isUpdatingProfileImage = false
+    @Published private(set) var profileImageError: String?
 
     private let service: MarathonService
     private let meService: MeService
@@ -60,6 +62,38 @@ private final class MarathonViewModel: ObservableObject {
             return false
         }
     }
+
+    func uploadProfileImage(data: Data, contentType: String) async -> Bool {
+        guard !isUpdatingProfileImage else { return false }
+        isUpdatingProfileImage = true
+        profileImageError = nil
+        do {
+            _ = try await meService.uploadProfileImage(data: data, contentType: contentType)
+            me = try await meService.fetchMe()
+            isUpdatingProfileImage = false
+            return true
+        } catch {
+            profileImageError = error.localizedDescription
+            isUpdatingProfileImage = false
+            return false
+        }
+    }
+
+    func deleteProfileImage() async -> Bool {
+        guard !isUpdatingProfileImage else { return false }
+        isUpdatingProfileImage = true
+        profileImageError = nil
+        do {
+            _ = try await meService.deleteProfileImage()
+            me = try await meService.fetchMe()
+            isUpdatingProfileImage = false
+            return true
+        } catch {
+            profileImageError = error.localizedDescription
+            isUpdatingProfileImage = false
+            return false
+        }
+    }
 }
 
 public struct MyView: View {
@@ -70,6 +104,7 @@ public struct MyView: View {
     @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
     @State private var showsRead365Link = false
+    @State private var showsProfileImageSettings = false
     @StateObject private var marathonViewModel: MarathonViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onLogout: () -> Void
@@ -101,8 +136,12 @@ public struct MyView: View {
                 Text("내 서재").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 173 * scale, y: 74 * scale)
                 HStack(spacing: 16 * scale) {
                     ZStack(alignment: .bottomTrailing) {
-                        ProfileAvatar(size: 64, scale: scale)
-                        Button(action: {}) {
+                        ProfileAvatar(
+                            size: 64,
+                            scale: scale,
+                            imagePath: marathonViewModel.me?.user.profileImageUrl
+                        )
+                        Button(action: { showsProfileImageSettings = true }) {
                             Image(systemName: "pencil").font(.system(size: 10 * scale, weight: .bold)).foregroundColor(.black).frame(width: 24 * scale, height: 24 * scale).background(Color.white).clipShape(Circle()).shadow(radius: 3 * scale)
                         }
                         .buttonStyle(.plain)
@@ -136,6 +175,19 @@ public struct MyView: View {
         .ignoresSafeArea()
         .task { await marathonViewModel.load() }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
+        .sheet(isPresented: $showsProfileImageSettings) {
+            ProfileImageSettingsView(
+                profileImagePath: marathonViewModel.me?.user.profileImageUrl,
+                isSubmitting: marathonViewModel.isUpdatingProfileImage,
+                errorMessage: marathonViewModel.profileImageError,
+                onUpload: { data, contentType in
+                    await marathonViewModel.uploadProfileImage(data: data, contentType: contentType)
+                },
+                onDelete: {
+                    await marathonViewModel.deleteProfileImage()
+                }
+            )
+        }
         .fullScreenCover(isPresented: $showsLoanHistory) {
             LoanHistoryView(onBack: { showsLoanHistory = false })
         }
