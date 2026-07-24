@@ -1,6 +1,43 @@
 import SwiftUI
 import Service
 
+private enum ProfileImageUploadError: LocalizedError {
+    case missingImageURL
+
+    var errorDescription: String? {
+        "서버에서 프로필 이미지 주소를 받지 못했습니다."
+    }
+}
+
+private enum LocalProfileImageStore {
+    static func load(userId: Int) -> Data? {
+        try? Data(contentsOf: fileURL(userId: userId))
+    }
+
+    static func save(_ data: Data, userId: Int) throws {
+        let directory = fileURL(userId: userId).deletingLastPathComponent()
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        try data.write(to: fileURL(userId: userId), options: .atomic)
+    }
+
+    static func delete(userId: Int) {
+        try? FileManager.default.removeItem(at: fileURL(userId: userId))
+    }
+
+    private static func fileURL(userId: Int) -> URL {
+        let baseDirectory = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        )[0]
+        return baseDirectory
+            .appendingPathComponent("BookOn/ProfileImages", isDirectory: true)
+            .appendingPathComponent("profile-\(userId).jpg")
+    }
+}
+
 @MainActor
 private final class MarathonViewModel: ObservableObject {
     @Published private(set) var marathon: MarathonData?
@@ -11,6 +48,9 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var totalLoanCount = 0
     @Published private(set) var isLinkingRead365 = false
     @Published private(set) var read365LinkError: String?
+    @Published private(set) var isUpdatingProfileImage = false
+    @Published private(set) var profileImageError: String?
+    @Published private(set) var localProfileImageData: Data?
 
     private let service: MarathonService
     private let meService: MeService
@@ -31,6 +71,12 @@ private final class MarathonViewModel: ObservableObject {
 
         do {
             me = try await meService.fetchMe()
+            if let user = me?.user, user.profileImageUrl != nil {
+                localProfileImageData = LocalProfileImageStore.load(userId: user.userId)
+            } else if let userId = me?.user.userId {
+                LocalProfileImageStore.delete(userId: userId)
+                localProfileImageData = nil
+            }
             async let marathonRequest = try? service.fetchMarathon()
             async let myInfoRequest = try? service.fetchMyInfo()
             async let loanHistoryRequest = try? loanService.fetchHistory(status: "ALL", page: 1, size: 1)
@@ -60,6 +106,62 @@ private final class MarathonViewModel: ObservableObject {
             return false
         }
     }
+
+    func uploadProfileImage(data: Data, contentType: String) async -> Bool {
+        guard !isUpdatingProfileImage else { return false }
+        isUpdatingProfileImage = true
+        profileImageError = nil
+        do {
+            let uploaded = try await meService.uploadProfileImage(data: data, contentType: contentType)
+            guard uploaded.profileImageUrl != nil else {
+                throw ProfileImageUploadError.missingImageURL
+            }
+            localProfileImageData = data
+            if let userId = me?.user.userId {
+                try LocalProfileImageStore.save(data, userId: userId)
+            }
+            if let imagePath = uploaded.profileImageUrl,
+               let imageURL = resolvedProfileImageURL(imagePath),
+               let image = UIImage(data: data) {
+                ProfileImageCache.shared.store(image, for: imageURL)
+            }
+            me = try await meService.fetchMe()
+            isUpdatingProfileImage = false
+            return true
+        } catch {
+            profileImageError = error.localizedDescription
+            isUpdatingProfileImage = false
+            return false
+        }
+    }
+
+    func deleteProfileImage() async -> Bool {
+        guard !isUpdatingProfileImage else { return false }
+        isUpdatingProfileImage = true
+        profileImageError = nil
+        do {
+            _ = try await meService.deleteProfileImage()
+            if let userId = me?.user.userId {
+                LocalProfileImageStore.delete(userId: userId)
+            }
+            ProfileImageCache.shared.removeAll()
+            localProfileImageData = nil
+            me = try await meService.fetchMe()
+            isUpdatingProfileImage = false
+            return true
+        } catch {
+            profileImageError = error.localizedDescription
+            isUpdatingProfileImage = false
+            return false
+        }
+    }
+
+    private func resolvedProfileImageURL(_ imagePath: String) -> URL? {
+        if let absoluteURL = URL(string: imagePath), absoluteURL.scheme != nil {
+            return absoluteURL
+        }
+        return URL(string: imagePath, relativeTo: APIConfiguration.baseURL)?.absoluteURL
+    }
 }
 
 public struct MyView: View {
@@ -70,6 +172,7 @@ public struct MyView: View {
     @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
     @State private var showsRead365Link = false
+    @State private var showsProfileImageSettings = false
     @StateObject private var marathonViewModel: MarathonViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onLogout: () -> Void
@@ -101,8 +204,13 @@ public struct MyView: View {
                 Text("내 서재").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 173 * scale, y: 74 * scale)
                 HStack(spacing: 16 * scale) {
                     ZStack(alignment: .bottomTrailing) {
-                        ProfileAvatar(size: 64, scale: scale)
-                        Button(action: {}) {
+                        ProfileAvatar(
+                            size: 64,
+                            scale: scale,
+                            imagePath: marathonViewModel.me?.user.profileImageUrl,
+                            imageData: marathonViewModel.localProfileImageData
+                        )
+                        Button(action: { showsProfileImageSettings = true }) {
                             Image(systemName: "pencil").font(.system(size: 10 * scale, weight: .bold)).foregroundColor(.black).frame(width: 24 * scale, height: 24 * scale).background(Color.white).clipShape(Circle()).shadow(radius: 3 * scale)
                         }
                         .buttonStyle(.plain)
@@ -136,6 +244,19 @@ public struct MyView: View {
         .ignoresSafeArea()
         .task { await marathonViewModel.load() }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
+        .sheet(isPresented: $showsProfileImageSettings) {
+            ProfileImageSettingsView(
+                profileImagePath: marathonViewModel.me?.user.profileImageUrl,
+                isSubmitting: marathonViewModel.isUpdatingProfileImage,
+                errorMessage: marathonViewModel.profileImageError,
+                onUpload: { data, contentType in
+                    await marathonViewModel.uploadProfileImage(data: data, contentType: contentType)
+                },
+                onDelete: {
+                    await marathonViewModel.deleteProfileImage()
+                }
+            )
+        }
         .fullScreenCover(isPresented: $showsLoanHistory) {
             LoanHistoryView(onBack: { showsLoanHistory = false })
         }

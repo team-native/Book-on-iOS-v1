@@ -6,6 +6,11 @@ public struct MeUser: Decodable, Sendable {
     public let name: String
     public let department: String
     public let gender: String
+    public let profileImageUrl: String?
+}
+
+public struct ProfileImageResponse: Decodable, Sendable {
+    public let profileImageUrl: String?
 }
 
 public struct MeLoanSummary: Decodable, Sendable {
@@ -61,5 +66,26 @@ public struct MeService: Sendable {
             requiresAuthorization: true
         )
         return try await client.send(endpoint, as: NotificationSettings.self).data
+    }
+
+    public func uploadProfileImage(
+        data: Data,
+        contentType: String = "image/jpeg"
+    ) async throws -> ProfileImageResponse {
+        let endpoint = APIEndpoint(
+            path: "/me/profile-image",
+            method: .post,
+            headers: ["Content-Type": contentType],
+            body: data,
+            requiresAuthorization: true
+        )
+        return try await client.send(endpoint, as: ProfileImageResponse.self).data
+    }
+
+    public func deleteProfileImage() async throws -> ProfileImageResponse {
+        try await client.send(
+            APIEndpoint(path: "/me/profile-image", method: .delete, requiresAuthorization: true),
+            as: ProfileImageResponse.self
+        ).data
     }
 }

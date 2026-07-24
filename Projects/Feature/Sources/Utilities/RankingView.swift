@@ -102,7 +102,11 @@ public struct RankingView: View {
 
         return Button { selectedPlayer = player } label: {
             VStack(spacing: 3 * scale) {
-                ProfileAvatar(size: isFirst ? 64 : 52, scale: scale)
+                ProfileAvatar(
+                    size: isFirst ? 64 : 52,
+                    scale: scale,
+                    imagePath: player.profileImageUrl
+                )
                 Text(player.name).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
                 AnimatedLoanCount(value: Double(player.loanCount) * Double(progress))
                     .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
@@ -165,6 +169,7 @@ public struct RankingView: View {
                         name: player.name,
                         detail: player.department,
                         count: "\(player.loanCount)권",
+                        profileImagePath: player.profileImageUrl,
                         scale: scale,
                         action: { selectedPlayer = player }
                     )
@@ -180,7 +185,7 @@ public struct RankingView: View {
     private func playerProfile(_ player: ReaderRanking) -> some View {
         NavigationStack {
             VStack(spacing: 18) {
-                ProfileAvatar(size: 88)
+                ProfileAvatar(size: 88, imagePath: player.profileImageUrl)
                 Text(player.name).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24))
                 Text(player.department).foregroundColor(.secondary)
                 Text("연간 대출 \(player.loanCount)권").foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
