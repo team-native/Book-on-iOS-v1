@@ -16,6 +16,36 @@ public struct BookSummary: Decodable, Identifiable, Sendable {
     public let registeredAt: String
 
     public var id: Int { bookId }
+
+    public init(
+        bookId: Int,
+        title: String,
+        author: String,
+        publisher: String,
+        category: String,
+        libraryNumber: String,
+        coverImageUrl: String?,
+        totalQuantity: Int,
+        availableQuantity: Int,
+        loanAvailable: Bool,
+        status: String?,
+        isbn: String?,
+        registeredAt: String
+    ) {
+        self.bookId = bookId
+        self.title = title
+        self.author = author
+        self.publisher = publisher
+        self.category = category
+        self.libraryNumber = libraryNumber
+        self.coverImageUrl = coverImageUrl
+        self.totalQuantity = totalQuantity
+        self.availableQuantity = availableQuantity
+        self.loanAvailable = loanAvailable
+        self.status = status
+        self.isbn = isbn
+        self.registeredAt = registeredAt
+    }
 }
 
 public struct BookListData: Decodable, Sendable {

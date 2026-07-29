@@ -51,16 +51,64 @@ final class SearchBooksViewModel: ObservableObject {
         guard !keyword.isEmpty else { return }
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
-        do { let result = try await service.searchBooks(keyword: keyword); books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
+        do { let result = try await service.searchBooks(keyword: keyword); books = mergedCopies(result.items); page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
         catch { books = []; errorMessage = error.localizedDescription }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
         guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.searchBooks(keyword: keyword, page: page + 1); books += result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.searchBooks(keyword: keyword, page: page + 1); books = mergedCopies(books + result.items); page = result.pagination.page; hasNext = result.pagination.hasNext }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
+    }
+
+    private func mergedCopies(_ items: [BookSummary]) -> [BookSummary] {
+        var order: [String] = []
+        var grouped: [String: BookSummary] = [:]
+
+        for book in items {
+            let isbn = book.isbn?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let key = isbn.isEmpty
+                ? "\(book.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())|\(book.author.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
+                : "isbn:\(isbn)"
+
+            guard let existing = grouped[key] else {
+                order.append(key)
+                grouped[key] = copy(of: book, totalQuantity: book.totalQuantity, availableQuantity: book.availableQuantity)
+                continue
+            }
+
+            grouped[key] = copy(
+                of: existing,
+                totalQuantity: existing.totalQuantity + book.totalQuantity,
+                availableQuantity: existing.availableQuantity + book.availableQuantity
+            )
+        }
+
+        return order.compactMap { grouped[$0] }
+    }
+
+    private func copy(of book: BookSummary, totalQuantity: Int, availableQuantity: Int) -> BookSummary {
+        BookSummary(
+            bookId: book.bookId,
+            title: book.title,
+            author: book.author,
+            publisher: book.publisher,
+            category: book.category,
+            libraryNumber: book.libraryNumber.replacingOccurrences(
+                of: #"\s+c\.\d+\s*$"#,
+                with: "",
+                options: [.regularExpression, .caseInsensitive]
+            ),
+            coverImageUrl: book.coverImageUrl,
+            totalQuantity: totalQuantity,
+            availableQuantity: availableQuantity,
+            loanAvailable: availableQuantity > 0,
+            status: book.status,
+            isbn: book.isbn,
+            registeredAt: book.registeredAt
+        )
     }
 }
 
