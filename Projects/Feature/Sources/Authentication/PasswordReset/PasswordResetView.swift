@@ -190,10 +190,10 @@ public struct PasswordResetView: View {
                 try await service.sendVerificationEmail(to: email)
                 isLoading = false
                 step = .reset
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 404 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 404 {
                 isLoading = false
                 errorMessage = message ?? "가입되지 않은 이메일입니다."
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 422 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 422 {
                 isLoading = false
                 errorMessage = message ?? "이메일 형식을 확인해주세요."
             } catch {
@@ -217,10 +217,10 @@ public struct PasswordResetView: View {
                 try await service.resetPassword(request)
                 isLoading = false
                 showsCompletionAlert = true
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 401 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 401 {
                 isLoading = false
                 errorMessage = message ?? "인증번호가 올바르지 않거나 만료되었습니다."
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 422 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 422 {
                 isLoading = false
                 errorMessage = message ?? "새 비밀번호를 다시 확인해주세요."
             } catch {

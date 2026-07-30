@@ -5,7 +5,7 @@ public enum NetworkError: Error {
     case invalidResponse
     case missingAccessToken
     case sessionExpired(message: String?)
-    case server(statusCode: Int, errorCode: Int?, message: String?)
+    case server(statusCode: Int, errorCode: Int?, message: String?, detail: APIErrorDetail?)
     case decoding(Error)
 }
 
@@ -20,8 +20,21 @@ extension NetworkError: LocalizedError {
             return "로그인이 필요한 기능입니다."
         case let .sessionExpired(message):
             return message ?? "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
-        case let .server(_, _, message):
-            return message ?? "서버 요청에 실패했습니다."
+        case let .server(_, errorCode, message, _):
+            switch errorCode {
+            case 5021:
+                return "학교 도서관 서버에 연결할 수 없습니다."
+            case 5022:
+                return "학교 도서관 응답 시간이 초과되었습니다."
+            case 5023:
+                return "학교 도서관 서버가 일시적으로 응답하지 않습니다."
+            case 5024:
+                return "학교 도서관 응답을 처리할 수 없습니다."
+            case 5025:
+                return "학교 도서관 자료를 조회하지 못했습니다."
+            default:
+                return message ?? "서버 요청에 실패했습니다."
+            }
         case let .decoding(error):
             return "서버 응답을 처리하지 못했습니다: \(error.localizedDescription)"
         }
@@ -85,7 +98,8 @@ public struct APIClient: Sendable {
             throw NetworkError.server(
                 statusCode: httpResponse.statusCode,
                 errorCode: errorResponse?.errorCode,
-                message: errorResponse?.message
+                message: errorResponse?.message,
+                detail: errorResponse?.data
             )
         }
 
@@ -96,7 +110,8 @@ public struct APIClient: Sendable {
                 throw NetworkError.server(
                     statusCode: httpResponse.statusCode,
                     errorCode: response.errorCode,
-                    message: response.message
+                    message: response.message,
+                    detail: nil
                 )
             }
 

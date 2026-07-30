@@ -174,11 +174,11 @@ public struct MainHomeView: View {
     private func recommendationSection(scale: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8 * scale) {
-                Text("AI 추천")
+                Text("도서 추천")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 20 * scale))
                 HStack(spacing: 4 * scale) {
                     Image(systemName: "sparkles").font(.system(size: 8 * scale))
-                    Text("AI")
+                    Text("추천")
                 }
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
                 .foregroundColor(.white)
@@ -190,7 +190,7 @@ public struct MainHomeView: View {
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
-            Text("\(viewModel.user?.name ?? "사용자")님의 대출 이력을 분석해 골랐어요")
+            Text("학교 도서관의 대출 통계를 기반으로 골랐어요")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                 .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
                 .padding(.top, 4 * scale)
@@ -201,7 +201,12 @@ public struct MainHomeView: View {
                         ProgressView()
                             .frame(width: 338 * scale, height: 220 * scale)
                     } else if viewModel.displayedRecommendations.isEmpty {
-                        Text(viewModel.recommendationsFailed ? "추천 도서를 불러오지 못했어요." : "아직 추천 도서가 없어요.")
+                        Text(
+                            viewModel.dlsUnavailable
+                                ? "학교 도서관 연결이 원활하지 않아요.\n잠시 후 다시 시도해주세요."
+                                : (viewModel.recommendationsFailed ? "추천 도서를 불러오지 못했어요." : "아직 추천 도서가 없어요.")
+                        )
+                            .multilineTextAlignment(.center)
                             .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                             .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
                             .frame(width: 338 * scale, height: 160 * scale, alignment: .center)
@@ -279,7 +284,14 @@ public struct MainHomeView: View {
                     if viewModel.isLoading && viewModel.popularBooks.isEmpty {
                         ProgressView().frame(width: 338 * scale, height: 76 * scale)
                     } else if viewModel.popularBooks.isEmpty {
-                        Text("인기 도서를 불러오지 못했어요.").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary).frame(width: 338 * scale, height: 76 * scale)
+                        Text(
+                            viewModel.dlsUnavailable
+                                ? "학교 도서관 연결이 원활하지 않아요."
+                                : (viewModel.popularBooksFailed ? "인기 도서를 불러오지 못했어요." : "아직 인기 도서가 없어요.")
+                        )
+                            .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
+                            .foregroundColor(.secondary)
+                            .frame(width: 338 * scale, height: 76 * scale)
                     } else {
                         ForEach(viewModel.popularBooks) { book in popularBook(book: book, scale: scale) }
                     }

@@ -15,6 +15,7 @@ let project = Project.makeModule(
     resources: ["Resources/**"],
     infoPlist: .extendingDefault(
         with: [
+            "API_BASE_URL": "http://ssh.gsmsv.site:33839",
             "UILaunchScreen": [
                 "UIColorName": "",
                 "UIImageName": "",

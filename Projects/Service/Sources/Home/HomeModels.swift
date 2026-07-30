@@ -4,6 +4,22 @@ public struct HomeData: Decodable, Sendable {
     public let banners: [HomeBanner]
     public let todayRecommendation: BookRecommendation?
     public let menus: [HomeMenu]
+    public let externalServices: ExternalServices?
+}
+
+public struct ExternalServices: Decodable, Sendable {
+    public let dls: ExternalServiceStatus?
+}
+
+public struct ExternalServiceStatus: Decodable, Sendable {
+    public let status: String
+    public let errorCode: Int?
+    public let message: String?
+    public let data: APIErrorDetail?
+
+    public var isUnavailable: Bool {
+        status == "UNAVAILABLE"
+    }
 }
 
 public struct HomeBanner: Decodable, Identifiable, Sendable {

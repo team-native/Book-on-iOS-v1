@@ -124,13 +124,13 @@ public struct SignUpFlowView: View {
                     verificationError = nil
                     move(to: .verification)
                 }
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 409 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 409 {
                 await MainActor.run {
                     isRegistering = false
                     registerError = message ?? "이미 가입된 이메일입니다."
                     verificationError = registerError
                 }
-            } catch let NetworkError.server(statusCode, _, message) where statusCode == 422 {
+            } catch let NetworkError.server(statusCode, _, message, _) where statusCode == 422 {
                 await MainActor.run {
                     isRegistering = false
                     registerError = message ?? "입력한 회원정보를 다시 확인해주세요."

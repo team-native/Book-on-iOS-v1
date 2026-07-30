@@ -160,7 +160,7 @@ public struct LoginView: View {
                 try await loginService.login(loginId: loginEmail, password: trimmedPassword)
                 isLoading = false
                 onLogin(loginEmail, trimmedPassword)
-            } catch let NetworkError.server(statusCode, _, _) where statusCode == 401 {
+            } catch let NetworkError.server(statusCode, _, _, _) where statusCode == 401 {
                 isLoading = false
                 passwordError = "아이디 또는 비밀번호가 일치하지 않아요"
             } catch {

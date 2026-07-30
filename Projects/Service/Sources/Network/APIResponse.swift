@@ -15,4 +15,14 @@ public struct APIResponse<ResponseData: Decodable>: Decodable {
 struct APIErrorResponse: Decodable {
     let errorCode: Int
     let message: String
+    let data: APIErrorDetail?
+}
+
+public struct APIErrorDetail: Decodable, Sendable {
+    public let service: String?
+    public let reason: String?
+    public let path: String?
+    public let httpStatus: Int?
+    public let proxyStatus: String?
+    public let timeout: Bool?
 }
