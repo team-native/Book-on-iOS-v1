@@ -83,10 +83,12 @@ public struct MainHomeView: View {
     private func header(scale: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("좋은 저녁이에요")
-                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                    .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
-                    .frame(height: 20 * scale, alignment: .topLeading)
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    Text(greeting(for: context.date))
+                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                        .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
+                        .frame(height: 20 * scale, alignment: .topLeading)
+                }
                 Text("\(viewModel.user?.name ?? "사용자")님")
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24 * scale))
                     .foregroundColor(.black)
@@ -122,6 +124,19 @@ public struct MainHomeView: View {
                 .offset(x: 304 * scale, y: 10 * scale)
         }
         .frame(width: 340 * scale, height: 50 * scale, alignment: .topLeading)
+    }
+
+    private func greeting(for date: Date) -> String {
+        switch Calendar.current.component(.hour, from: date) {
+        case 5..<12:
+            return "좋은 아침이에요"
+        case 12..<15:
+            return "좋은 점심이에요"
+        case 15..<18:
+            return "좋은 오후예요"
+        default:
+            return "좋은 저녁이에요"
+        }
     }
 
     private func noticeCard(scale: CGFloat) -> some View {
