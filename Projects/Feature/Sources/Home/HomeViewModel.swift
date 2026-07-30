@@ -11,6 +11,9 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var noticeFailed = false
     @Published private(set) var recommendationsFailed = false
+    @Published private(set) var popularBooksFailed = false
+    @Published private(set) var dlsUnavailable = false
+    @Published private(set) var dlsMessage: String?
     @Published private(set) var errorMessage: String?
 
     private let service: HomeService
@@ -35,14 +38,27 @@ final class HomeViewModel: ObservableObject {
         isLoading = true
         noticeFailed = false
         recommendationsFailed = false
+        popularBooksFailed = false
+        dlsUnavailable = false
+        dlsMessage = nil
         errorMessage = nil
 
-        async let homeRequest: Void = loadHome()
+        await loadHome()
+
         async let noticesRequest: Void = loadNotices()
-        async let recommendationsRequest: Void = loadRecommendations()
-        async let popularRequest: Void = loadPopularBooks()
         async let meRequest: Void = loadMe()
-        _ = await (homeRequest, noticesRequest, recommendationsRequest, popularRequest, meRequest)
+
+        if dlsUnavailable {
+            recommendations = []
+            popularBooks = []
+            recommendationsFailed = true
+            popularBooksFailed = true
+            _ = await (noticesRequest, meRequest)
+        } else {
+            async let recommendationsRequest: Void = loadRecommendations()
+            async let popularRequest: Void = loadPopularBooks()
+            _ = await (noticesRequest, meRequest, recommendationsRequest, popularRequest)
+        }
 
         isLoading = false
     }
@@ -53,12 +69,19 @@ final class HomeViewModel: ObservableObject {
 
     private func loadPopularBooks() async {
         do { popularBooks = try await booksService.fetchBooks(sort: "POPULAR", size: 10).items }
-        catch { record(error) }
+        catch {
+            popularBooksFailed = true
+            updateDlsStatus(from: error)
+        }
     }
 
     private func loadHome() async {
         do {
             home = try await service.fetchHome()
+            if let dls = home?.externalServices?.dls, dls.isUnavailable {
+                dlsUnavailable = true
+                dlsMessage = dls.message
+            }
         } catch {
             record(error)
         }
@@ -69,7 +92,6 @@ final class HomeViewModel: ObservableObject {
             notice = try await service.fetchNotices(size: 1).items.first
         } catch {
             noticeFailed = true
-            record(error)
         }
     }
 
@@ -78,8 +100,17 @@ final class HomeViewModel: ObservableObject {
             recommendations = try await service.fetchTodayRecommendations().items
         } catch {
             recommendationsFailed = true
-            record(error)
+            updateDlsStatus(from: error)
         }
+    }
+
+    private func updateDlsStatus(from error: Error) {
+        guard case let NetworkError.server(_, errorCode, message, _) = error,
+              let errorCode,
+              5021...5025 ~= errorCode
+        else { return }
+        dlsUnavailable = true
+        dlsMessage = message
     }
 
     private func record(_ error: Error) {

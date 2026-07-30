@@ -77,6 +77,7 @@ private final class MarathonViewModel: ObservableObject {
                 LocalProfileImageStore.delete(userId: userId)
                 localProfileImageData = nil
             }
+            _ = try? await read365Service.extendSession()
             async let marathonRequest = try? service.fetchMarathon()
             async let myInfoRequest = try? service.fetchMyInfo()
             async let loanHistoryRequest = try? loanService.fetchHistory(status: "ALL", page: 1, size: 1)

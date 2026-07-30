@@ -51,14 +51,14 @@ final class SearchBooksViewModel: ObservableObject {
         guard !keyword.isEmpty else { return }
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
-        do { let result = try await service.searchBooks(keyword: keyword); books = mergedCopies(result.items); page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
+        do { let result = try await service.searchBooks(keyword: keyword, size: 100); books = mergedCopies(result.items); page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
         catch { books = []; errorMessage = error.localizedDescription }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
         guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.searchBooks(keyword: keyword, page: page + 1); books = mergedCopies(books + result.items); page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.searchBooks(keyword: keyword, page: page + 1, size: 100); books = mergedCopies(books + result.items); page = result.pagination.page; hasNext = result.pagination.hasNext }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
@@ -79,8 +79,11 @@ final class SearchBooksViewModel: ObservableObject {
                 continue
             }
 
+            let representative = existing.availableQuantity == 0 && book.availableQuantity > 0
+                ? book
+                : existing
             grouped[key] = copy(
-                of: existing,
+                of: representative,
                 totalQuantity: existing.totalQuantity + book.totalQuantity,
                 availableQuantity: existing.availableQuantity + book.availableQuantity
             )
