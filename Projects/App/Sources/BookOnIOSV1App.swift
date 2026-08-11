@@ -39,11 +39,12 @@ struct RootView: View {
                         onLogin: { _, _ in authenticationState = .signedIn },
                         onForgotPassword: { isResettingPassword = true },
                         onSignUp: { isSigningUp = true }
-                    )
+                        )
                         .navigationDestination(isPresented: $isResettingPassword) {
-                            PasswordResetView(onCompleted: {
-                                isResettingPassword = false
-                            })
+                            PasswordResetView(
+                                onBack: { isResettingPassword = false },
+                                onCompleted: { isResettingPassword = false }
+                            )
                         }
                         .navigationDestination(isPresented: $isSigningUp) {
                             SignUpFlowView(onFinished: {

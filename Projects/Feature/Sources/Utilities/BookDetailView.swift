@@ -2,6 +2,7 @@ import SwiftUI
 import Service
 
 public struct BookDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: BookDetailViewModel
     private let onBack: () -> Void
 
@@ -18,9 +19,14 @@ public struct BookDetailView: View {
                 if viewModel.isLoading { ProgressView() }
                 else if let book = viewModel.book { detail(book, scale: scale) }
                 else { errorView(scale: scale) }
-                AppBackButton(scale: scale, action: onBack).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).padding(.leading, 23 * scale).padding(.top, 64 * scale)
+                AppBackButton(scale: scale, action: goBack).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).padding(.leading, 23 * scale).padding(.top, 64 * scale)
             }
         }.ignoresSafeArea().task { await viewModel.load() }
+    }
+
+    private func goBack() {
+        onBack()
+        dismiss()
     }
 
     private func detail(_ book: BookDetail, scale: CGFloat) -> some View {
