@@ -50,32 +50,30 @@ public struct BookDetailView: View {
                     }.padding(.horizontal, 23 * scale).padding(.top, 20 * scale).padding(.bottom, 120 * scale)
                 }
             }
-            bottomBar(book: book, scale: scale)
+            bottomBar(scale: scale)
         }
     }
 
-    private func bottomBar(book: BookDetail, scale: CGFloat) -> some View {
-        HStack(spacing: 24 * scale) {
+    private func bottomBar(scale: CGFloat) -> some View {
+        HStack {
             Button { Task { await viewModel.toggleFavorite() } } label: {
-                if viewModel.isUpdatingFavorite { ProgressView() }
-                else { Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart").font(.system(size: 22 * scale)).foregroundColor(.red) }
+                HStack(spacing: 8 * scale) {
+                    if viewModel.isUpdatingFavorite {
+                        ProgressView()
+                    } else {
+                        Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
+                            .font(.system(size: 20 * scale))
+                            .foregroundColor(.red)
+                        Text(viewModel.isFavorite ? "관심 도서 해제" : "관심 도서 추가")
+                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 16 * scale))
+                            .foregroundColor(.black)
+                    }
+                }
+                .frame(width: 300 * scale, height: 60 * scale)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 20 * scale))
             }.disabled(viewModel.isUpdatingFavorite)
-            Button(viewModel.isRequestingLoan ? "대출 신청 중..." : (book.loanAvailable ? "대출 신청하기" : "대출 불가")) {
-                Task { await viewModel.requestLoan() }
-            }
-                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 16 * scale)).foregroundColor(.white)
-                .frame(width: 275 * scale, height: 60 * scale)
-                .background(book.loanAvailable ? FeatureAsset.Color.buttonColor.swiftUIColor : Color.gray.opacity(0.3))
-                .clipShape(RoundedRectangle(cornerRadius: 20 * scale)).disabled(!book.loanAvailable || viewModel.isRequestingLoan)
         }.frame(maxWidth: .infinity).frame(height: 100 * scale).background(Color.white).overlay(alignment: .top) { Divider() }
-        .alert("대출 신청 완료", isPresented: Binding(
-            get: { viewModel.loanMessage != nil },
-            set: { if !$0 { viewModel.loanMessage = nil } }
-        )) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text(viewModel.loanMessage ?? "")
-        }
     }
 
     private func errorView(scale: CGFloat) -> some View {
