@@ -35,7 +35,13 @@ public struct BookDetailView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Color(red: 248/255, green: 255/255, blue: 232/255)
                         .frame(height: 420 * scale)
-                        .overlay(BookCoverView(urlString: book.coverImageUrl, width: 160 * scale, height: 240 * scale).shadow(radius: 8 * scale))
+                        .overlay(
+                            Interactive3DBookView(
+                                coverImageURL: book.coverImageUrl,
+                                width: 160 * scale,
+                                height: 240 * scale
+                            )
+                        )
                     VStack(alignment: .leading, spacing: 8 * scale) {
                         Text(book.title).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24 * scale))
                         Text(book.author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale)).foregroundColor(.secondary)
@@ -84,3 +90,87 @@ public struct BookDetailView: View {
 }
 
 struct BookDetailView_Previews: PreviewProvider { static var previews: some View { BookDetailView(bookId: 1).previewDevice("iPhone 16") } }
+
+private struct Interactive3DBookView: View {
+    let coverImageURL: String?
+    let width: CGFloat
+    let height: CGFloat
+
+    @State private var rotationX: Double = 0
+    @State private var rotationY: Double = 0
+    @State private var isDragging = false
+
+    private var thickness: CGFloat { max(7, width * 0.065) }
+
+    var body: some View {
+        ZStack {
+            // Pages and the back cover stay slightly offset behind the front cover,
+            // making the book retain visible thickness while it is tilted.
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color(red: 0.72, green: 0.72, blue: 0.68))
+                .frame(width: width, height: height)
+                .offset(x: thickness, y: thickness * 0.45)
+
+            RoundedRectangle(cornerRadius: 4)
+                .fill(
+                    LinearGradient(
+                        colors: [.white, Color(red: 0.86, green: 0.84, blue: 0.76)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: width - thickness * 0.35, height: height - thickness * 0.7)
+                .offset(x: thickness * 0.7, y: thickness * 0.35)
+
+            BookCoverView(
+                urlString: coverImageURL,
+                width: width,
+                height: height,
+                cornerRadius: 6
+            )
+            .overlay(alignment: .leading) {
+                LinearGradient(
+                    colors: [.black.opacity(0.2), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: max(8, width * 0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+        }
+        .frame(width: width + thickness, height: height + thickness)
+        .rotation3DEffect(.degrees(rotationX), axis: (x: 1, y: 0, z: 0), perspective: 0.65)
+        .rotation3DEffect(.degrees(rotationY), axis: (x: 0, y: 1, z: 0), perspective: 0.65)
+        .scaleEffect(isDragging ? 1.035 : 1)
+        .shadow(
+            color: .black.opacity(isDragging ? 0.3 : 0.2),
+            radius: isDragging ? 18 : 10,
+            x: CGFloat(rotationY / 3),
+            y: 9 + CGFloat(rotationX / 5)
+        )
+        .contentShape(Rectangle())
+        .gesture(dragGesture)
+        .accessibilityLabel("3D 책 표지")
+        .accessibilityHint("드래그하여 여러 방향으로 돌려볼 수 있습니다")
+    }
+
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 2)
+            .onChanged { value in
+                isDragging = true
+                rotationY = limited(Double(value.translation.width / width) * 32)
+                rotationX = limited(Double(-value.translation.height / height) * 32)
+            }
+            .onEnded { _ in
+                withAnimation(.spring(response: 0.48, dampingFraction: 0.7)) {
+                    rotationX = 0
+                    rotationY = 0
+                    isDragging = false
+                }
+            }
+    }
+
+    private func limited(_ angle: Double) -> Double {
+        min(max(angle, -28), 28)
+    }
+}
