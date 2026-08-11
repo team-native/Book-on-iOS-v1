@@ -20,13 +20,16 @@ public struct PasswordResetView: View {
     @StateObject private var keyboard = KeyboardObserver()
 
     private let service: PasswordResetService
+    private let onBack: () -> Void
     private let onCompleted: () -> Void
 
     public init(
         service: PasswordResetService = PasswordResetService(),
+        onBack: @escaping () -> Void = {},
         onCompleted: @escaping () -> Void = {}
     ) {
         self.service = service
+        self.onBack = onBack
         self.onCompleted = onCompleted
     }
 
@@ -237,6 +240,7 @@ public struct PasswordResetView: View {
         if step == .reset {
             step = .email
         } else {
+            onBack()
             dismiss()
         }
     }
