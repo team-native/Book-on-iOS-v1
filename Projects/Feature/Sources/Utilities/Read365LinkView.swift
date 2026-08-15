@@ -1,16 +1,15 @@
 import SwiftUI
+import WebKit
 
 struct Read365LinkView: View {
     let isSubmitting: Bool
     let serverError: String?
     let onBack: () -> Void
-    let onLink: (String, String) -> Void
+    let onLink: (String) -> Void
 
-    @State private var read365Id = ""
-    @State private var password = ""
+    @State private var webView: WKWebView?
     @State private var isAgreed = false
     @State private var localError: String?
-    @StateObject private var keyboard = KeyboardObserver()
 
     var body: some View {
         GeometryReader { geo in
@@ -37,32 +36,21 @@ struct Read365LinkView: View {
                     Text("계정연동")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 28 * scale))
                         .foregroundColor(.black)
-                    Text("독서마라톤 아이디와 비밀번호를\n입력해 주세요")
+                    Text("read365 간편로그인을 진행해 주세요")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
                         .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                         .lineSpacing(3 * scale)
                 }
                 .offset(x: 25 * scale, y: 191 * scale)
 
-                VStack(alignment: .leading, spacing: 10 * scale) {
-                    AuthTextField(
-                        icon: nil,
-                        placeholder: "독서마라톤 아이디",
-                        text: $read365Id,
-                        label: "독서마라톤 아이디",
-                        fieldWidth: 342,
-                        scale: scale
-                    )
-
-                    AuthTextField(
-                        icon: nil,
-                        placeholder: "비밀번호",
-                        text: $password,
-                        label: "비밀번호",
-                        isSecure: true,
-                        fieldWidth: 342,
-                        scale: scale
-                    )
+                VStack(alignment: .leading, spacing: 12 * scale) {
+                    Read365WebView(webView: $webView)
+                        .frame(width: 342 * scale, height: 360 * scale)
+                        .clipShape(RoundedRectangle(cornerRadius: 14 * scale))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14 * scale)
+                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                        }
 
                     Button {
                         isAgreed.toggle()
@@ -82,14 +70,6 @@ struct Read365LinkView: View {
                     }
                     .buttonStyle(.plain)
 
-                    HStack(spacing: 24 * scale) {
-                        socialIcon(FeatureAsset.Image.googleLoginIcon.swiftUIImage, scale: scale)
-                        socialIcon(FeatureAsset.Image.naverLoginIcon.swiftUIImage, scale: scale)
-                        socialIcon(FeatureAsset.Image.kakaoLoginIcon.swiftUIImage, scale: scale)
-                    }
-                    .frame(width: 342 * scale)
-                    .padding(.top, 17 * scale)
-
                     if let message = localError ?? serverError {
                         InlineErrorText(message: message, scale: scale)
                             .lineLimit(2)
@@ -98,41 +78,71 @@ struct Read365LinkView: View {
                 }
                 .offset(x: 25 * scale, y: 296 * scale)
 
-                KeyboardAvoidingBottomButton(
-                    screenHeight: geo.size.height,
-                    contentBottomY: (734 + 52) * scale,
-                    keyboard: keyboard
-                ) {
-                    PrimaryButton(
-                        title: isSubmitting ? "연동 중..." : "연동하기",
-                        scale: scale,
-                        isEnabled: !isSubmitting,
-                        action: submit
-                    )
-                    .offset(x: 47 * scale, y: 734 * scale)
-                }
+                PrimaryButton(
+                    title: isSubmitting ? "연동 중..." : "로그인 완료 · 연동하기",
+                    scale: scale,
+                    isEnabled: !isSubmitting,
+                    action: submit
+                )
+                .offset(x: 47 * scale, y: 734 * scale)
             }
         }
         .ignoresSafeArea()
-        .onChange(of: read365Id) { _ in localError = nil }
-        .onChange(of: password) { _ in localError = nil }
-    }
-
-    private func socialIcon(_ image: Image, scale: CGFloat) -> some View {
-        image.resizable().scaledToFit().frame(width: 44 * scale, height: 44 * scale)
     }
 
     private func submit() {
-        UIApplication.hideKeyboard()
-        let id = read365Id.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !id.isEmpty, !password.isEmpty else {
-            localError = "아이디와 비밀번호를 모두 입력해주세요."
+        guard let webView else {
+            localError = "로그인 화면을 불러오는 중입니다. 잠시 후 다시 시도해주세요."
             return
         }
         guard isAgreed else {
             localError = "개인정보 제3자 제공에 동의해주세요."
             return
         }
-        onLink(id, password)
+
+        webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
+            let cookieHeader = cookies
+                .filter { cookie in
+                    let domain = cookie.domain.lowercased()
+                    return domain.contains("read365.edunet.net") || domain == ".edunet.net"
+                }
+                .map { "\($0.name)=\($0.value)" }
+                .joined(separator: "; ")
+
+            guard !cookieHeader.isEmpty else {
+                DispatchQueue.main.async {
+                    localError = "read365 로그인 Cookie를 찾지 못했어요. 먼저 웹에서 로그인을 완료해주세요."
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                onLink(cookieHeader)
+            }
+        }
     }
+}
+
+private struct Read365WebView: UIViewRepresentable {
+    @Binding var webView: WKWebView?
+
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .default()
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsBackForwardNavigationGestures = true
+
+        if let url = URL(string: "https://read365.edunet.net") {
+            webView.load(URLRequest(url: url))
+        }
+
+        DispatchQueue.main.async {
+            self.webView = webView
+        }
+
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {}
 }
