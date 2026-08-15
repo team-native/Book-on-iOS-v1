@@ -5,16 +5,12 @@ struct SignUpStep3View: View {
     @Binding var info: SignUpAccountInfo
     let isLinking: Bool
     let linkError: String?
-    let onLink: (String, String) -> Void
+    let onLink: (String) -> Void
     let onNext: () -> Void
 
     @State private var isLinkFormPresented = false
+    @State private var showsRead365WebLogin = false
     @State private var showsNoticeBanner = false
-    @StateObject private var keyboard = KeyboardObserver()
-
-    private var isLinkFormValid: Bool {
-        !info.marathonId.isEmpty && !info.marathonPassword.isEmpty
-    }
 
     var body: some View {
         GeometryReader { geo in
@@ -30,7 +26,7 @@ struct SignUpStep3View: View {
                     .offset(x: 30 * scale, y: 131 * scale)
 
                 if isLinkFormPresented {
-                    linkForm(scale: scale, screenHeight: geo.size.height)
+                    linkForm(scale: scale)
                 } else {
                     marathonChoice(scale: scale, screenWidth: geo.size.width)
                 }
@@ -46,6 +42,16 @@ struct SignUpStep3View: View {
 
             showsNoticeBanner = false
             showNoticeBannerWithDelay()
+        }
+        .fullScreenCover(isPresented: $showsRead365WebLogin) {
+            Read365LinkView(
+                isSubmitting: isLinking,
+                serverError: linkError,
+                onBack: { showsRead365WebLogin = false },
+                onLink: { cookieHeader in
+                    onLink(cookieHeader)
+                }
+            )
         }
     }
 
@@ -114,14 +120,14 @@ struct SignUpStep3View: View {
         }
     }
 
-    private func linkForm(scale: CGFloat, screenHeight: CGFloat) -> some View {
+    private func linkForm(scale: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: 8 * scale) {
                 Text("계정연동")
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale))
                     .foregroundColor(.black)
 
-                Text("독서마라톤 아이디와 비밀번호를\n입력해 주세요")
+                Text("read365 간편로그인을 진행해 주세요")
                     .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
                     .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     .lineSpacing(2 * scale)
@@ -130,23 +136,16 @@ struct SignUpStep3View: View {
             .offset(x: 25 * scale, y: 191 * scale)
 
             VStack(alignment: .leading, spacing: 10 * scale) {
-                AuthTextField(
-                    icon: nil,
-                    placeholder: "s20000@gsm.hs.kr",
-                    text: $info.marathonId,
-                    label: "독서마라톤 아이디",
-                    fieldWidth: 342,
-                    scale: scale
-                )
+                Text("read365 로그인 화면에서 직접 로그인하면\n로그인 정보가 안전하게 연동됩니다.")
+                    .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
+                    .lineSpacing(4 * scale)
 
-                AuthTextField(
-                    icon: nil,
-                    placeholder: "비밀번호",
-                    text: $info.marathonPassword,
-                    label: "비밀번호",
-                    isSecure: true,
-                    fieldWidth: 342,
-                    scale: scale
+                PrimaryButton(
+                    title: "read365 간편로그인 열기",
+                    scale: scale,
+                    isEnabled: !isLinking,
+                    action: { showsRead365WebLogin = true }
                 )
 
                 if let linkError {
@@ -155,40 +154,27 @@ struct SignUpStep3View: View {
             }
             .offset(x: 25 * scale, y: 296 * scale)
 
-            KeyboardAvoidingBottomButton(
-                screenHeight: screenHeight,
-                contentBottomY: (734 + 52 + 16 + 17) * scale,
-                keyboard: keyboard
-            ) {
-                VStack(spacing: 16 * scale) {
-                    PrimaryButton(
-                        title: isLinking ? "연동 중..." : "연동하고 가입완료",
-                        scale: scale,
-                        isEnabled: !isLinking,
-                        action: {
-                        hideKeyboard()
-                        guard isLinkFormValid else { return }
-                        onLink(
-                            info.marathonId.trimmingCharacters(in: .whitespacesAndNewlines),
-                            info.marathonPassword
-                        )
-                    })
+            VStack(spacing: 16 * scale) {
+                PrimaryButton(
+                    title: "연동 화면 닫기",
+                    scale: scale,
+                    isEnabled: !isLinking,
+                    action: { isLinkFormPresented = false }
+                )
 
-                    Button(action: {
-                        hideKeyboard()
-                        guard !isLinking else { return }
-                        info.isMarathonLinked = false
-                        onNext()
-                    }) {
-                        Text("나중에 할게요 · 건너뛰기")
-                            .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
-                            .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
-                    }
-                    .buttonStyle(.plain)
+                Button(action: {
+                    guard !isLinking else { return }
+                    info.isMarathonLinked = false
+                    onNext()
+                }) {
+                    Text("나중에 할게요 · 건너뛰기")
+                        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
+                        .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                 }
-                .frame(width: FigmaDesign.size.width * scale, alignment: .center)
-                .offset(y: 734 * scale)
+                .buttonStyle(.plain)
             }
+            .frame(width: FigmaDesign.size.width * scale, alignment: .center)
+            .offset(y: 734 * scale)
         }
     }
 
@@ -200,8 +186,4 @@ struct SignUpStep3View: View {
         }
     }
 
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        keyboard.reset()
-    }
 }

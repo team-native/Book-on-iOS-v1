@@ -183,14 +183,14 @@ public struct SignUpFlowView: View {
         }
     }
 
-    private func linkRead365(id: String, password: String) {
+    private func linkRead365(cookieHeader: String) {
         guard !isLinkingRead365 else { return }
         isLinkingRead365 = true
         read365Error = nil
 
         Task {
             do {
-                try await read365Service.login(id: id, password: password)
+                try await read365Service.registerSession(cookieHeader: cookieHeader)
                 await MainActor.run {
                     isLinkingRead365 = false
                     info.isMarathonLinked = true

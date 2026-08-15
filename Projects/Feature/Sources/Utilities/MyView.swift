@@ -90,13 +90,13 @@ private final class MarathonViewModel: ObservableObject {
         isLoading = false
     }
 
-    func linkRead365(id: String, password: String) async -> Bool {
+    func linkRead365(cookieHeader: String) async -> Bool {
         guard !isLinkingRead365 else { return false }
         isLinkingRead365 = true
         read365LinkError = nil
 
         do {
-            _ = try await read365Service.login(id: id, password: password)
+            _ = try await read365Service.registerSession(cookieHeader: cookieHeader)
             marathon = try await service.fetchMarathon()
             myInfo = try await service.fetchMyInfo()
             isLinkingRead365 = false
@@ -282,9 +282,9 @@ public struct MyView: View {
                 isSubmitting: marathonViewModel.isLinkingRead365,
                 serverError: marathonViewModel.read365LinkError,
                 onBack: { showsRead365Link = false },
-                onLink: { id, password in
+                onLink: { cookieHeader in
                     Task {
-                        if await marathonViewModel.linkRead365(id: id, password: password) {
+                        if await marathonViewModel.linkRead365(cookieHeader: cookieHeader) {
                             showsRead365Link = false
                         }
                     }
