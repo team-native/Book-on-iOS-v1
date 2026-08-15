@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct SignUpStep3View: View {
     @Binding var info: SignUpAccountInfo
@@ -18,8 +17,6 @@ struct SignUpStep3View: View {
 
             ZStack(alignment: .topLeading) {
                 FeatureAsset.Color.background.swiftUIColor
-                    .contentShape(Rectangle())
-                    .onTapGesture { hideKeyboard() }
 
                 SignUpProgressBar(currentStep: 3, scale: scale)
                     .frame(width: 333 * scale, alignment: .leading)
