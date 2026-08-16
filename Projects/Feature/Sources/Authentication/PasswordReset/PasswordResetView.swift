@@ -241,7 +241,6 @@ public struct PasswordResetView: View {
             step = .email
         } else {
             onBack()
-            dismiss()
         }
     }
 
