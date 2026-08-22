@@ -1,1 +1,1 @@
-// ThirdPartyLib
+// 서드파티 라이브러리 모듈
