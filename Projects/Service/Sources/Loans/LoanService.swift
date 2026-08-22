@@ -1,19 +1,5 @@
 import Foundation
 
-public struct LoanRequest: Encodable, Sendable {
-    public let bookId: Int
-    public init(bookId: Int) { self.bookId = bookId }
-}
-
-public struct LoanResult: Decodable, Sendable {
-    public let loanId: Int
-    public let bookId: Int
-    public let borrowedAt: String
-    public let dueDate: String
-    public let status: String
-    public let title: String
-}
-
 public struct LoanExtensionResult: Decodable, Sendable {
     public let loanId: Int
     public let previousDueDate: String
@@ -66,16 +52,6 @@ public struct LoanHistoryData: Decodable, Sendable {
 public struct LoanService: Sendable {
     private let client: APIClient
     public init(client: APIClient = APIClient()) { self.client = client }
-
-    public func requestLoan(bookId: Int) async throws -> LoanResult {
-        let endpoint = try APIEndpoint.json(
-            path: "/loans",
-            method: .post,
-            body: LoanRequest(bookId: bookId),
-            requiresAuthorization: true
-        )
-        return try await client.send(endpoint, as: LoanResult.self).data
-    }
 
     public func extendLoan(loanId: Int) async throws -> LoanExtensionResult {
         try await client.send(
