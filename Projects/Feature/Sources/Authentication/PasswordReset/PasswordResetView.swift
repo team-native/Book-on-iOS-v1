@@ -141,7 +141,7 @@ public struct PasswordResetView: View {
                 PasswordHintButton(isShown: $showsPasswordHint, scale: scale)
             }
             .frame(width: 331 * scale)
-            .padding(.top, 136 * scale)
+            .padding(.top, 86 * scale)
             .zIndex(10)
 
             Capsule()

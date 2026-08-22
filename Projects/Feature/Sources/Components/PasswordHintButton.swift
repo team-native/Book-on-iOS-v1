@@ -50,25 +50,25 @@ struct PasswordHintBubble: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("비밀번호 유의사항")
-                .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 20 * scale))
+                .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 12 * scale))
                 .foregroundColor(.black)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: 136 * scale, height: 20 * scale, alignment: .leading)
 
             Text("영문(대·소문자), 숫자")
-                .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 16 * scale))
+                .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
                 .foregroundColor(.black)
-                .padding(.top, 18 * scale)
+                .frame(width: 136 * scale, height: 20 * scale, alignment: .leading)
 
             Text("특수문자를 포함한 6~15자를 입력")
-                .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 16 * scale))
+                .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
                 .foregroundColor(.black)
-                .padding(.top, 16 * scale)
+                .frame(width: 136 * scale, height: 20 * scale, alignment: .leading)
         }
-        .padding(.horizontal, 28 * scale)
-        .padding(.vertical, 26 * scale)
-        .frame(width: 331 * scale, height: 160 * scale, alignment: .topLeading)
+        .padding(.horizontal, 12 * scale)
+        .padding(.vertical, 10 * scale)
+        .frame(width: 160 * scale, height: 80 * scale, alignment: .topLeading)
         .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 24 * scale))
-        .shadow(color: .black.opacity(0.12), radius: 14 * scale, x: 0, y: 6 * scale)
+        .clipShape(RoundedRectangle(cornerRadius: 12 * scale))
+        .shadow(color: .black.opacity(0.12), radius: 7 * scale, x: 0, y: 2 * scale)
     }
 }
