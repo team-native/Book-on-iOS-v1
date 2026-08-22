@@ -10,6 +10,7 @@ public extension Project {
         dependencies: [TargetDependency] = [],
         sources: SourceFilesList = ["Sources/**"],
         resources: ResourceFileElements? = nil,
+        entitlements: Entitlements? = nil,
         infoPlist: InfoPlist = .default
     ) -> Project {
 
@@ -23,6 +24,7 @@ public extension Project {
                 infoPlist: infoPlist,
                 sources: sources,
                 resources: resources,
+                entitlements: entitlements,
                 dependencies: dependencies
             )
         ]

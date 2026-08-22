@@ -4,6 +4,8 @@ import Service
 
 @main
 struct BookOnIOSV1App: App {
+    @UIApplicationDelegateAdaptor(BookOnAppDelegate.self) private var appDelegate
+
     var body: some Scene {
         WindowGroup {
             RootView()
