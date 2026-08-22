@@ -327,6 +327,7 @@ public struct PasswordResetView: View {
             step = .email
         case .email:
             onBack()
+            dismiss()
         }
     }
 
