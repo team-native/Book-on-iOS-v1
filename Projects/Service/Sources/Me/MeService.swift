@@ -33,10 +33,17 @@ public struct MeCurrentLoan: Decodable, Sendable, Identifiable {
 public struct NotificationSettings: Codable, Sendable {
     public let dueDateReminder: Bool
     public let newBookReminder: Bool
+    /// 도서부 공지 푸시 수신 여부입니다.
+    public let noticeReminder: Bool
 
-    public init(dueDateReminder: Bool, newBookReminder: Bool) {
+    public init(
+        dueDateReminder: Bool,
+        newBookReminder: Bool,
+        noticeReminder: Bool
+    ) {
         self.dueDateReminder = dueDateReminder
         self.newBookReminder = newBookReminder
+        self.noticeReminder = noticeReminder
     }
 }
 
