@@ -1,4 +1,5 @@
 import Foundation
+import Service
 import UIKit
 import UserNotifications
 
@@ -20,6 +21,9 @@ final class PushNotificationCoordinator: NSObject {
     /// 사용자가 알림을 열었을 때 전달됩니다. 앱 셸 라우터가 이를 구독해
     /// 도서, 대출 또는 알림 상세 화면으로 이동할 수 있습니다.
     static let didOpenNotification = Notification.Name("PushNotificationCoordinator.didOpenNotification")
+
+    private let tokenDefaultsKey = "PushNotificationCoordinator.lastSyncedFCMToken"
+    private let deviceTokenService = DeviceTokenService()
 
     private override init() {
         super.init()
@@ -91,6 +95,47 @@ final class PushNotificationCoordinator: NSObject {
         print("APNs registration failed: \(error.localizedDescription)")
         #endif
     }
+
+    /// FCM 토큰은 로그인 전에 전달될 수 있으므로, 로그인 완료 또는 앱 복귀 시 다시 호출합니다.
+    func syncDeviceTokenIfPossible() async {
+        #if canImport(FirebaseMessaging)
+        guard let token = Messaging.messaging().fcmToken, !token.isEmpty else { return }
+        await registerDeviceTokenIfNeeded(token)
+        #endif
+    }
+
+    /// 로그아웃 전에 현재 사용자에게 연결된 기기 토큰을 폐기합니다.
+    func unregisterDeviceTokenIfPossible() async {
+        guard let token = UserDefaults.standard.string(forKey: tokenDefaultsKey), !token.isEmpty else {
+            return
+        }
+
+        do {
+            try await deviceTokenService.unregister(token: token)
+        } catch {
+            #if DEBUG
+            print("Device token unregister failed: \(error.localizedDescription)")
+            #endif
+        }
+
+        // 로그아웃 뒤 새 사용자가 로그인하면 같은 토큰을 다시 등록해야 합니다.
+        UserDefaults.standard.removeObject(forKey: tokenDefaultsKey)
+    }
+
+    private func registerDeviceTokenIfNeeded(_ token: String) async {
+        guard UserDefaults.standard.string(forKey: tokenDefaultsKey) != token else { return }
+
+        do {
+            try await deviceTokenService.register(token: token)
+            UserDefaults.standard.set(token, forKey: tokenDefaultsKey)
+        } catch NetworkError.missingAccessToken {
+            // 로그인 전 수신한 토큰은 로그인 완료 후 syncDeviceTokenIfPossible에서 등록합니다.
+        } catch {
+            #if DEBUG
+            print("Device token registration failed: \(error.localizedDescription)")
+            #endif
+        }
+    }
 }
 
 extension PushNotificationCoordinator: UNUserNotificationCenterDelegate {
@@ -117,10 +162,7 @@ extension PushNotificationCoordinator: UNUserNotificationCenterDelegate {
 extension PushNotificationCoordinator: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         guard let fcmToken, !fcmToken.isEmpty else { return }
-
-        // TODO: 백엔드의 기기 토큰 등록 API 명세가 확정되면, 로그인한 사용자의
-        // FCM 토큰을 해당 API로 전송합니다.
-        // FCM을 발송 경로로 사용할 때는 APNs 토큰이 아닌 FCM 토큰만 백엔드에 전송합니다.
+        Task { await registerDeviceTokenIfNeeded(fcmToken) }
     }
 }
 #endif

@@ -38,7 +38,10 @@ struct RootView: View {
             } else if authenticationState == .signedOut {
                 NavigationStack {
                     LoginView(
-                        onLogin: { _, _ in authenticationState = .signedIn },
+                        onLogin: { _, _ in
+                            authenticationState = .signedIn
+                            Task { await PushNotificationCoordinator.shared.syncDeviceTokenIfPossible() }
+                        },
                         onForgotPassword: { isResettingPassword = true },
                         onSignUp: { isSigningUp = true }
                         )
@@ -79,6 +82,9 @@ struct RootView: View {
         do {
             let accessToken = try tokenStore.accessToken
             authenticationState = accessToken?.isEmpty == false ? .signedIn : .signedOut
+            if authenticationState == .signedIn {
+                Task { await PushNotificationCoordinator.shared.syncDeviceTokenIfPossible() }
+            }
         } catch {
             authenticationState = .signedOut
         }
@@ -89,6 +95,7 @@ struct RootView: View {
         isResettingPassword = false
         authenticationState = .signedOut
         Task {
+            await PushNotificationCoordinator.shared.unregisterDeviceTokenIfPossible()
             try? await loginService.logout()
         }
     }
