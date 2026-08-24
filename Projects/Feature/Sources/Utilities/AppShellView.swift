@@ -5,6 +5,8 @@ public struct AppShellView: View {
     private enum Destination: Identifiable {
         case search
         case notifications
+        case notices
+        case loanHistory
         case newArrivals
         case bookDetail(Int)
 
@@ -12,6 +14,8 @@ public struct AppShellView: View {
             switch self {
             case .search: return "search"
             case .notifications: return "notifications"
+            case .notices: return "notices"
+            case .loanHistory: return "loanHistory"
             case .newArrivals: return "newArrivals"
             case let .bookDetail(bookId): return "bookDetail-\(bookId)"
             }
@@ -58,6 +62,16 @@ public struct AppShellView: View {
             }
         }
         .ignoresSafeArea()
+        .onReceive(NotificationCenter.default.publisher(for: .bookOnPushNotificationRoute)) { notification in
+            guard let route = notification.object as? PushNotificationRoute else { return }
+
+            switch route {
+            case .loanHistory:
+                destination = .loanHistory
+            case .notices:
+                destination = .notices
+            }
+        }
         .fullScreenCover(item: $destination) { destination in
             switch destination {
             case .search:
@@ -68,6 +82,10 @@ public struct AppShellView: View {
                 )
             case .notifications:
                 NotificationInboxView(onDismiss: dismissDestination)
+            case .notices:
+                NoticeListView(onBack: dismissDestination)
+            case .loanHistory:
+                LoanHistoryView(onBack: dismissDestination)
             case .newArrivals:
                 NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: { self.destination = .bookDetail($0) })
             case let .bookDetail(bookId):

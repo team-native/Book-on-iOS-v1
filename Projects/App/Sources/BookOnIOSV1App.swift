@@ -65,6 +65,12 @@ struct RootView: View {
         .task {
             restoreAuthenticationState()
         }
+        .onChange(of: isSplashFinished) { _ in
+            activatePushRouteDeliveryIfReady()
+        }
+        .onChange(of: authenticationState) { _ in
+            activatePushRouteDeliveryIfReady()
+        }
         .onReceive(NotificationCenter.default.publisher(for: AuthSessionEvent.didExpire)) { _ in
             authenticationState = .signedOut
             isSigningUp = false
@@ -97,6 +103,15 @@ struct RootView: View {
         Task {
             await PushNotificationCoordinator.shared.unregisterDeviceTokenIfPossible()
             try? await loginService.logout()
+        }
+    }
+
+    private func activatePushRouteDeliveryIfReady() {
+        guard isSplashFinished, authenticationState == .signedIn else { return }
+
+        // AppShell이 화면 계층에 추가된 뒤 이벤트를 보내도록 다음 런 루프에서 전달합니다.
+        DispatchQueue.main.async {
+            PushNotificationCoordinator.shared.activateRouteDelivery()
         }
     }
 }

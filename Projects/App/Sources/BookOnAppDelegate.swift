@@ -7,6 +7,11 @@ final class BookOnAppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         PushNotificationCoordinator.shared.configureFirebaseIfAvailable()
         PushNotificationCoordinator.shared.registerForRemoteNotificationsIfAuthorized()
+
+        // 앱이 종료된 상태에서 푸시를 탭해 실행된 경우에도 동일한 라우팅 흐름을 사용합니다.
+        if let userInfo = launchOptions?[.remoteNotification] as? [AnyHashable: Any] {
+            PushNotificationCoordinator.shared.handleNotification(userInfo: userInfo)
+        }
         return true
     }
 
