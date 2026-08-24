@@ -1,4 +1,5 @@
 import Foundation
+import Feature
 import Service
 import UIKit
 import UserNotifications
@@ -24,6 +25,8 @@ final class PushNotificationCoordinator: NSObject {
 
     private let tokenDefaultsKey = "PushNotificationCoordinator.lastSyncedFCMToken"
     private let deviceTokenService = DeviceTokenService()
+    private var pendingRoute: PushNotificationRoute?
+    private var canDeliverRoutes = false
 
     private override init() {
         super.init()
@@ -96,6 +99,18 @@ final class PushNotificationCoordinator: NSObject {
         #endif
     }
 
+    /// 앱 셸이 표시된 뒤, 앱 종료 상태에서 수신한 푸시의 화면 전환을 전달합니다.
+    func activateRouteDelivery() {
+        canDeliverRoutes = true
+        deliverPendingRouteIfPossible()
+    }
+
+    func handleNotification(userInfo: [AnyHashable: Any]) {
+        NotificationCenter.default.post(name: Self.didOpenNotification, object: nil, userInfo: userInfo)
+        pendingRoute = PushNotificationRoute(userInfo: userInfo)
+        deliverPendingRouteIfPossible()
+    }
+
     /// FCM 토큰은 로그인 전에 전달될 수 있으므로, 로그인 완료 또는 앱 복귀 시 다시 호출합니다.
     func syncDeviceTokenIfPossible() async {
         #if canImport(FirebaseMessaging)
@@ -136,6 +151,13 @@ final class PushNotificationCoordinator: NSObject {
             #endif
         }
     }
+
+    private func deliverPendingRouteIfPossible() {
+        guard canDeliverRoutes, let pendingRoute else { return }
+
+        self.pendingRoute = nil
+        NotificationCenter.default.post(name: .bookOnPushNotificationRoute, object: pendingRoute)
+    }
 }
 
 extension PushNotificationCoordinator: UNUserNotificationCenterDelegate {
@@ -150,11 +172,7 @@ extension PushNotificationCoordinator: UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        NotificationCenter.default.post(
-            name: Self.didOpenNotification,
-            object: nil,
-            userInfo: response.notification.request.content.userInfo
-        )
+        handleNotification(userInfo: response.notification.request.content.userInfo)
     }
 }
 
