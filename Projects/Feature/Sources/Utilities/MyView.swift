@@ -166,6 +166,7 @@ private final class MarathonViewModel: ObservableObject {
 }
 
 public struct MyView: View {
+    @Environment(\.scenePhase) private var scenePhase
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
@@ -244,6 +245,11 @@ public struct MyView: View {
         }
         .ignoresSafeArea()
         .task { await marathonViewModel.load() }
+        .onAppear { Task { await marathonViewModel.load() } }
+        .onChange(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            Task { await marathonViewModel.load() }
+        }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
         .sheet(isPresented: $showsProfileImageSettings) {
             ProfileImageSettingsView(
