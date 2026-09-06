@@ -4,9 +4,9 @@ import Service
 public struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: BookDetailViewModel
-    private let onBack: () -> Void
+    private let onBack: (() -> Void)?
 
-    public init(bookId: Int, booksService: BooksService = BooksService(), onBack: @escaping () -> Void = {}) {
+    public init(bookId: Int, booksService: BooksService = BooksService(), onBack: (() -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: BookDetailViewModel(bookId: bookId, service: booksService))
         self.onBack = onBack
     }
@@ -25,8 +25,11 @@ public struct BookDetailView: View {
     }
 
     private func goBack() {
-        onBack()
-        dismiss()
+        if let onBack {
+            onBack()
+        } else {
+            dismiss()
+        }
     }
 
     private func detail(_ book: BookDetail, scale: CGFloat) -> some View {
