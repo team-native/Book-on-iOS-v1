@@ -45,6 +45,7 @@ private final class MarathonViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var me: MeData?
+    @Published private(set) var currentLoans: [CurrentLoan]?
     @Published private(set) var totalLoanCount = 0
     @Published private(set) var isLinkingRead365 = false
     @Published private(set) var read365LinkError: String?
@@ -80,9 +81,11 @@ private final class MarathonViewModel: ObservableObject {
             _ = try? await read365Service.extendSession()
             async let marathonRequest = try? service.fetchMarathon()
             async let myInfoRequest = try? service.fetchMyInfo()
+            async let currentLoansRequest = try? loanService.fetchCurrentLoans()
             async let loanHistoryRequest = try? loanService.fetchHistory(status: "ALL", page: 1, size: 1)
             marathon = await marathonRequest
             myInfo = await myInfoRequest
+            currentLoans = await currentLoansRequest
             totalLoanCount = await loanHistoryRequest?.pagination.totalCount ?? 0
         } catch {
             errorMessage = error.localizedDescription
@@ -405,11 +408,12 @@ public struct MyView: View {
 
     private var profileStats: [(String, String)] {
         let summary = marathonViewModel.me?.loanSummary
-        let dueSoonCount = marathonViewModel.me?.currentLoans.filter {
-            (0...3).contains($0.dDay)
-        }.count ?? 0
+        let currentLoans = marathonViewModel.currentLoans
+        let dueSoonCount = currentLoans?.filter { (0...3).contains($0.dDay) }.count
+            ?? marathonViewModel.me?.currentLoans.filter { (0...3).contains($0.dDay) }.count
+            ?? 0
         return [
-            ("대출 중", "\(summary?.currentLoanCount ?? 0)권"),
+            ("대출 중", "\(currentLoans?.count ?? summary?.currentLoanCount ?? 0)권"),
             ("반납 임박", "\(dueSoonCount)권"),
             ("누적 대출", "\(marathonViewModel.totalLoanCount)권"),
         ]
