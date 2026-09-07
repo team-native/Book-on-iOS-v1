@@ -92,9 +92,14 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
+          API_KEY_DIR=$HOME/.appstoreconnect/private_keys
+          API_KEY_PATH=$API_KEY_DIR/AuthKey_$ASC_KEY_ID.p8
+          IPA_PATH=$(find "$RUNNER_TEMP/ipa" -maxdepth 1 -name '*.ipa' -print -quit)
+          test -n "$IPA_PATH"
+          mkdir -p "$API_KEY_DIR"
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$API_KEY_PATH"
           xcrun altool --upload-app \
             --type ios \
-            --file $RUNNER_TEMP/ipa/Book-on-iOS-V1.ipa \
+            --file "$IPA_PATH" \
             --apiKey "$ASC_KEY_ID" \
-            --apiIssuer "$ASC_ISSUER_ID" \
-            --apiKey-file <(echo "$ASC_PRIVATE_KEY")
+            --apiIssuer "$ASC_ISSUER_ID"
