@@ -35,6 +35,17 @@ jobs:
       - name: Install dependencies
         run: tuist install
 
+      - name: Restore Firebase configuration
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          set -euo pipefail
+          test -n "$GOOGLE_SERVICE_INFO_PLIST"
+          FIREBASE_PLIST=Projects/App/Resources/GoogleService-Info.plist
+          printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > "$FIREBASE_PLIST"
+          plutil -lint "$FIREBASE_PLIST"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :BUNDLE_ID' "$FIREBASE_PLIST")" = 'com.bookonios.Book-on-iOS-V1'
+
       - name: Generate project
         run: tuist generate --no-open
 
@@ -74,6 +85,13 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath $RUNNER_TEMP/Book-on-iOS-V1.xcarchive \
             | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Verify bundled Firebase configuration
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find "$RUNNER_TEMP/Book-on-iOS-V1.xcarchive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)
+          test -n "$APP_PATH"
+          test "$(plutil -convert xml1 -o - Projects/App/Resources/GoogleService-Info.plist)" = "$(plutil -convert xml1 -o - "$APP_PATH/GoogleService-Info.plist")"
 
       - name: Export IPA
         env:
