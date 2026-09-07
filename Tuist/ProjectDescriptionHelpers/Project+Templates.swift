@@ -11,7 +11,8 @@ public extension Project {
         sources: SourceFilesList = ["Sources/**"],
         resources: ResourceFileElements? = nil,
         entitlements: Entitlements? = nil,
-        infoPlist: InfoPlist = .default
+        infoPlist: InfoPlist = .default,
+        settings: Settings? = nil
     ) -> Project {
 
         let targets: [Target] = [
@@ -25,7 +26,8 @@ public extension Project {
                 sources: sources,
                 resources: resources,
                 entitlements: entitlements,
-                dependencies: dependencies
+                dependencies: dependencies,
+                settings: settings
             )
         ]
 
