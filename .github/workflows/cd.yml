@@ -73,9 +73,6 @@ jobs:
             -scheme Book-on-iOS-V1 \
             -destination 'generic/platform=iOS' \
             -archivePath $RUNNER_TEMP/Book-on-iOS-V1.xcarchive \
-            DEVELOPMENT_TEAM=DZ9T8FU5CT \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER='BookOn App Store' \
             | xcpretty && exit ${PIPESTATUS[0]}
 
       - name: Export IPA

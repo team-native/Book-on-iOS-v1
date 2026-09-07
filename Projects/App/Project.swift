@@ -38,5 +38,19 @@ let project = Project.makeModule(
                 ],
             ],
         ]
+    ),
+    settings: .settings(
+        configurations: [
+            .debug(name: "Debug", settings: [:]),
+            .release(
+                name: "Release",
+                settings: [
+                    "CODE_SIGN_STYLE": "Manual",
+                    "CODE_SIGN_IDENTITY": "Apple Distribution",
+                    "DEVELOPMENT_TEAM": "DZ9T8FU5CT",
+                    "PROVISIONING_PROFILE_SPECIFIER": "BookOn App Store",
+                ]
+            ),
+        ]
     )
 )
