@@ -12,3 +12,6 @@ Derived/
 
 # Dependencies
 Tuist/.build/
+
+# Firebase project configuration (kept local per environment)
+GoogleService-Info.plist
