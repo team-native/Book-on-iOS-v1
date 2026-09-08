@@ -43,6 +43,6 @@ jobs:
           xcodebuild build \
             -workspace Book-on-iOS-V1.xcworkspace \
             -scheme Book-on-iOS-V1 \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty && exit ${PIPESTATUS[0]}
