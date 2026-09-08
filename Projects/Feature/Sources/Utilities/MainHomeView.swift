@@ -7,6 +7,7 @@ public struct MainHomeView: View {
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onShowSearch: () -> Void
     private let onShowNotifications: () -> Void
+    private let onShowNotices: () -> Void
     private let onShowNewArrivals: () -> Void
     private let onShowBookDetail: (Int) -> Void
 
@@ -17,6 +18,7 @@ public struct MainHomeView: View {
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
+        onShowNotices: @escaping () -> Void = {},
         onShowNewArrivals: @escaping () -> Void = {},
         onShowBookDetail: @escaping (Int) -> Void = { _ in }
     ) {
@@ -24,6 +26,7 @@ public struct MainHomeView: View {
         self.onSelectTab = onSelectTab
         self.onShowSearch = onShowSearch
         self.onShowNotifications = onShowNotifications
+        self.onShowNotices = onShowNotices
         self.onShowNewArrivals = onShowNewArrivals
         self.onShowBookDetail = onShowBookDetail
     }
@@ -56,7 +59,7 @@ public struct MainHomeView: View {
                                 .padding(.top, 10 * scale)
                         }
 
-                        Button(action: {}) { noticeCard(scale: scale) }
+                        Button(action: onShowNotices) { noticeCard(scale: scale) }
                             .buttonStyle(.plain)
                             .padding(.top, 19 * scale)
 
