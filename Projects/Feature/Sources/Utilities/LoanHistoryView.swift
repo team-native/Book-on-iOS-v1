@@ -82,7 +82,7 @@ public struct LoanHistoryView: View {
     }
 
     @ViewBuilder private func currentContent(scale: CGFloat) -> some View {
-        if viewModel.currentLoans.isEmpty { Text("현재 대출 중인 도서가 없어요.").foregroundColor(.secondary) }
+        if viewModel.currentLoans.isEmpty { Text("현재 대출 중인 도서가 없어요.").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor) }
         ForEach(viewModel.currentLoans) { loan in
             LoanHistoryRow(
                 title: loan.title,
@@ -98,7 +98,7 @@ public struct LoanHistoryView: View {
     }
 
     @ViewBuilder private func historyContent(scale: CGFloat) -> some View {
-        if viewModel.history.isEmpty { Text("대출 이력이 없어요.").foregroundColor(.secondary) }
+        if viewModel.history.isEmpty { Text("대출 이력이 없어요.").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor) }
         ForEach(viewModel.history) { loan in
             LoanHistoryRow(
                 title: loan.title,

@@ -27,12 +27,12 @@ public struct NewArrivalsView: View {
     @ViewBuilder private func content(scale: CGFloat) -> some View {
         if viewModel.isLoading && viewModel.books.isEmpty { ProgressView().frame(maxWidth: .infinity).padding(.top, 180 * scale) }
         else if let error = viewModel.errorMessage { VStack { Text(error); Button("재시도") { Task { await viewModel.load() } } }.frame(maxWidth: .infinity).padding(.top, 140 * scale) }
-        else if viewModel.books.isEmpty { Text("최근 등록된 도서가 없어요").foregroundColor(.secondary).frame(maxWidth: .infinity).padding(.top, 160 * scale) }
+        else if viewModel.books.isEmpty { Text("최근 등록된 도서가 없어요").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).frame(maxWidth: .infinity).padding(.top, 160 * scale) }
         else {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 32 * scale), GridItem(.flexible())], spacing: 36 * scale) {
                 ForEach(viewModel.books) { book in
                     Button { onShowBookDetail(book.bookId) } label: {
-                        VStack(alignment: .leading, spacing: 8 * scale) { BookCoverView(urlString: book.coverImageUrl, width: 132 * scale, height: 177 * scale); Text(book.title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 13 * scale)).lineLimit(2); Text(book.author).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11 * scale)).foregroundColor(.secondary) }
+                        VStack(alignment: .leading, spacing: 8 * scale) { BookCoverView(urlString: book.coverImageUrl, width: 132 * scale, height: 177 * scale); Text(book.title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 13 * scale)).lineLimit(2); Text(book.author).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor) }
                     }.buttonStyle(.plain).foregroundColor(.black).onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
                 }
             }

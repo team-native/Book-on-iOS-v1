@@ -64,7 +64,7 @@ public struct LibraryView: View {
         } else if let error = viewModel.errorMessage, viewModel.books.isEmpty {
             retryView(error, scale: scale)
         } else if viewModel.books.isEmpty {
-            Text("등록된 도서가 없어요").frame(maxWidth: .infinity).padding(.top, 160 * scale).foregroundColor(.secondary)
+            Text("등록된 도서가 없어요").frame(maxWidth: .infinity).padding(.top, 160 * scale).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
         } else {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 20 * scale), GridItem(.flexible())], spacing: 30 * scale) {
                 ForEach(viewModel.books) { book in
@@ -72,7 +72,7 @@ public struct LibraryView: View {
                         VStack(alignment: .leading, spacing: 6 * scale) {
                             BookCoverView(urlString: book.coverImageUrl, width: 166 * scale, height: 234 * scale)
                             Text(book.title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale)).lineLimit(2).foregroundColor(.black)
-                            Text("\(book.author) · 재고 \(book.availableQuantity)권").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale)).foregroundColor(.secondary).lineLimit(1)
+                            Text("\(book.author) · 재고 \(book.availableQuantity)권").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).lineLimit(1)
                         }
                     }.buttonStyle(.plain).onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
                 }

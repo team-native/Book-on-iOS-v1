@@ -41,7 +41,7 @@ public struct BookDetailView: View {
                         .overlay(BookCoverView(urlString: book.coverImageUrl, width: 160 * scale, height: 240 * scale).shadow(radius: 8 * scale))
                     VStack(alignment: .leading, spacing: 8 * scale) {
                         Text(book.title).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24 * scale))
-                        Text(book.author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale)).foregroundColor(.secondary)
+                        Text(book.author).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                         HStack(spacing: 12 * scale) {
                             BookDetailStat(title: "도서관 번호", value: book.libraryNumber, scale: scale)
                             BookDetailStat(title: "재고 수량", value: "\(book.availableQuantity)권", scale: scale)

@@ -14,7 +14,7 @@ struct FavoriteBookRow: View {
                     BookCoverView(urlString: nil, width: 54 * scale, height: 68 * scale)
                     VStack(alignment: .leading, spacing: 7 * scale) {
                         Text(book.title).font(FeatureFontFamily.Pretendard.extraBold.swiftUIFont(size: 15 * scale)).foregroundColor(.black)
-                        Text("\(book.author) · \(book.libraryNumber)").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary)
+                        Text("\(book.author) · \(book.libraryNumber)").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     }
                 }
             }.buttonStyle(.plain)

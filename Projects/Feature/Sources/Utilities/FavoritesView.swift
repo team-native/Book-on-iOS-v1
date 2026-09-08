@@ -18,7 +18,7 @@ public struct FavoritesView: View {
                 Color.white
                 AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 64 * scale)
                 Text("즐겨찾기").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).frame(width: geo.size.width).offset(y: 74 * scale)
-                Text("관심 도서 \(viewModel.books.count)권 · 대출 가능해지면 알려드려요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary).offset(x: 24 * scale, y: 116 * scale)
+                Text("관심 도서 \(viewModel.books.count)권 · 대출 가능해지면 알려드려요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).offset(x: 24 * scale, y: 116 * scale)
                 content(scale: scale).offset(x: 24 * scale, y: 158 * scale)
             }
         }.ignoresSafeArea().task { await viewModel.load() }
@@ -27,7 +27,7 @@ public struct FavoritesView: View {
     @ViewBuilder private func content(scale: CGFloat) -> some View {
         if viewModel.isLoading && viewModel.books.isEmpty { ProgressView().frame(width: 344 * scale).padding(.top, 120 * scale) }
         else if let error = viewModel.errorMessage, viewModel.books.isEmpty { VStack { Text(error); Button("재시도") { Task { await viewModel.load() } } }.frame(width: 344 * scale).padding(.top, 100 * scale) }
-        else if viewModel.books.isEmpty { Text("관심 도서가 없어요").foregroundColor(.secondary).frame(width: 344 * scale).padding(.top, 120 * scale) }
+        else if viewModel.books.isEmpty { Text("관심 도서가 없어요").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).frame(width: 344 * scale).padding(.top, 120 * scale) }
         else {
             ScrollView {
                 LazyVStack(spacing: 16 * scale) {

@@ -251,7 +251,7 @@ public struct MainHomeView: View {
                 } placeholder: {
                     RoundedRectangle(cornerRadius: 4 * scale)
                         .fill(Color(red: 235/255, green: 235/255, blue: 235/255))
-                        .overlay(Image(systemName: "book.closed").foregroundColor(.secondary))
+                        .overlay(Image(systemName: "book.closed").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor))
                 }
                 .frame(width: 94 * scale, height: 160 * scale)
                 .clipped()
@@ -308,7 +308,7 @@ public struct MainHomeView: View {
                                 : (viewModel.popularBooksFailed ? "인기 도서를 불러오지 못했어요." : "아직 인기 도서가 없어요.")
                         )
                             .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                             .frame(width: 338 * scale, height: 76 * scale)
                     } else {
                         ForEach(viewModel.popularBooks) { book in popularBook(book: book, scale: scale) }
