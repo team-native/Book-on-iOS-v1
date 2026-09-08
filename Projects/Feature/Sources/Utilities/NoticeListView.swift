@@ -77,7 +77,7 @@ public struct NoticeListView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if viewModel.notices.isEmpty {
             Text("등록된 공지가 없어요.")
-                .foregroundColor(.secondary)
+                .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
@@ -88,7 +88,7 @@ public struct NoticeListView: View {
                                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 15 * scale))
                             Text(notice.summary)
                                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                                 .lineSpacing(3 * scale)
                             Text(notice.createdAt)
                                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))

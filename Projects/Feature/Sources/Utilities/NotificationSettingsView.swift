@@ -58,7 +58,7 @@ struct NotificationSettingsView: View {
             Capsule().fill(Color(red: 225/255, green: 225/255, blue: 230/255)).frame(width: 32, height: 4).padding(.top, 8)
             VStack(alignment: .leading, spacing: 0) {
                 Text("알림 설정").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 18)).padding(.top, 24)
-                Text("받고 싶은 알림을 선택하세요").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12)).foregroundColor(.secondary).padding(.top, 5)
+                Text("받고 싶은 알림을 선택하세요").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).padding(.top, 5)
                 NotificationChannelRow(title: "반납 알림", subtitle: "반납 예정일을 알려드려요", isOn: $viewModel.dueDateReminder)
                 NotificationChannelRow(title: "신간 알림", subtitle: "새 도서가 등록되면 알려드려요", isOn: $viewModel.newBookReminder)
                 NotificationChannelRow(title: "도서부 공지", subtitle: "도서부의 새로운 공지를 알려드려요", isOn: $viewModel.noticeReminder)
@@ -88,7 +88,7 @@ private struct NotificationChannelRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14))
-                Text(subtitle).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11)).foregroundColor(.secondary)
+                Text(subtitle).font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
             }
             Spacer()
             Toggle("", isOn: $isOn).labelsHidden().tint(FeatureAsset.Color.buttonColor.swiftUIColor)

@@ -41,7 +41,7 @@ public struct SearchView: View {
         else if didSearch && !viewModel.books.isEmpty {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16 * scale) {
-                    Text("‘\(query)’ 검색 결과 \(viewModel.books.count)건").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary)
+                    Text("‘\(query)’ 검색 결과 \(viewModel.books.count)건").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     ForEach(viewModel.books) { book in
                         SearchBookRow(book: book, scale: scale) { onShowBookDetail(book.bookId) }
                             .onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
@@ -65,7 +65,7 @@ public struct SearchView: View {
 
     private func emptyState(scale: CGFloat) -> some View {
         VStack(spacing: 16 * scale) { Image(systemName: "book.closed").font(.system(size: 62 * scale, weight: .thin)); Text(didSearch ? "검색된 책이 없어요\n다른 검색어를 입력해보세요" : "책 제목을 검색해보세요").multilineTextAlignment(.center) }
-            .foregroundColor(.secondary).frame(width: 344 * scale).padding(.top, 150 * scale)
+            .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).frame(width: 344 * scale).padding(.top, 150 * scale)
     }
 }
 
@@ -75,7 +75,7 @@ private struct SearchBookRow: View {
         Button(action: action) {
             HStack(spacing: 16 * scale) {
                 BookCoverView(urlString: book.coverImageUrl, width: 54 * scale, height: 68 * scale)
-                VStack(alignment: .leading, spacing: 7 * scale) { Text(book.title).font(FeatureFontFamily.Pretendard.extraBold.swiftUIFont(size: 15 * scale)); Text("\(book.author) · \(book.libraryNumber)").font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 12 * scale)).foregroundColor(.secondary) }
+                VStack(alignment: .leading, spacing: 7 * scale) { Text(book.title).font(FeatureFontFamily.Pretendard.extraBold.swiftUIFont(size: 15 * scale)); Text("\(book.author) · \(book.libraryNumber)").font(FeatureFontFamily.Pretendard.regular.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor) }
                 Spacer(); BookStatusBadge(title: "재고 \(book.availableQuantity)권", scale: scale).opacity(book.loanAvailable ? 1 : 0.45)
             }.padding(.horizontal, 16 * scale).frame(width: 344 * scale, height: 88 * scale).background(Color.white).clipShape(RoundedRectangle(cornerRadius: 16 * scale)).shadow(color: .black.opacity(0.15), radius: 10 * scale, x: scale, y: scale)
         }.buttonStyle(.plain).foregroundColor(.black)

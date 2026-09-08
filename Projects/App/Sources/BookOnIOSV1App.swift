@@ -62,6 +62,9 @@ struct RootView: View {
                 Color.clear
             }
         }
+        // 앱의 화면 배경은 라이트 팔레트로 고정되어 있으므로, 색을 따로 지정하지 않은
+        // 텍스트도 기기 다크 모드에서 흰색으로 바뀌지 않게 기본 색을 명시한다.
+        .foregroundColor(.black)
         .task {
             restoreAuthenticationState()
         }

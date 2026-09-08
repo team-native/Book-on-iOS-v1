@@ -12,7 +12,7 @@ struct BookCoverView: View {
         } placeholder: {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color(red: 241/255, green: 241/255, blue: 244/255))
-                .overlay(Image(systemName: "book.closed").foregroundColor(.secondary))
+                .overlay(Image(systemName: "book.closed").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor))
         }
         .frame(width: width, height: height)
         .clipped()

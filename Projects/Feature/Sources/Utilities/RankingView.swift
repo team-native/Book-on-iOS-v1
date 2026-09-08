@@ -187,7 +187,7 @@ public struct RankingView: View {
             VStack(spacing: 18) {
                 ProfileAvatar(size: 88, imagePath: player.profileImageUrl)
                 Text(player.name).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24))
-                Text(player.department).foregroundColor(.secondary)
+                Text(player.department).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                 Text("연간 대출 \(player.loanCount)권").foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
             .navigationTitle("프로필").navigationBarTitleDisplayMode(.inline)
