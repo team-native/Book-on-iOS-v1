@@ -42,6 +42,7 @@ public struct AppShellView: View {
                             onSelectTab: selectTab,
                             onShowSearch: { destination = .search },
                             onShowNotifications: { destination = .notifications },
+                            onShowNotices: { destination = .notices },
                             onShowNewArrivals: { destination = .newArrivals },
                             onShowBookDetail: { destination = .bookDetail($0) }
                         )
