@@ -1,6 +1,5 @@
 import SwiftUI
 import Service
-import UserNotifications
 
 @MainActor
 private final class NotificationSettingsViewModel: ObservableObject {
@@ -96,7 +95,7 @@ private struct NotificationChannelRow: View {
         .padding(.vertical, 16).overlay(alignment: .bottom) { Divider() }
         .onChange(of: isOn) { enabled in
             guard enabled else { return }
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
+            NotificationCenter.default.post(name: .bookOnRequestPushAuthorization, object: nil)
         }
     }
 }

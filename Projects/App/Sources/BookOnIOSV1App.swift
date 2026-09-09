@@ -80,6 +80,12 @@ struct RootView: View {
             isResettingPassword = false
             showsSessionExpiredAlert = true
         }
+        .onReceive(NotificationCenter.default.publisher(for: .bookOnRequestPushAuthorization)) { _ in
+            Task {
+                _ = try? await PushNotificationCoordinator.shared.requestAuthorization()
+                await PushNotificationCoordinator.shared.syncDeviceTokenIfPossible()
+            }
+        }
         .alert("로그인 세션 만료", isPresented: $showsSessionExpiredAlert) {
             Button("확인", role: .cancel) {}
         } message: {
