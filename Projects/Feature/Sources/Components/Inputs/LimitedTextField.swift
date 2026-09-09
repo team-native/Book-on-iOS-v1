@@ -17,7 +17,9 @@ struct LimitedTextField: UIViewRepresentable {
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
         textField.font = UIFont(name: "Pretendard-Regular", size: fontSize) ?? .systemFont(ofSize: fontSize)
-        textField.textColor = .label
+        // 앱 화면은 라이트 팔레트로 고정되어 있다. 시스템 `.label`은 기기
+        // 색상 모드에 따라 흰색이 될 수 있으므로 입력값도 명시적으로 검정으로 둔다.
+        textField.textColor = .black
         textField.backgroundColor = .clear
         textField.addTarget(context.coordinator, action: #selector(Coordinator.textDidChange(_:)), for: .editingChanged)
         return textField
@@ -27,6 +29,7 @@ struct LimitedTextField: UIViewRepresentable {
         context.coordinator.parent = self
         uiView.keyboardType = keyboardType
         uiView.font = UIFont(name: "Pretendard-Regular", size: fontSize) ?? .systemFont(ofSize: fontSize)
+        uiView.textColor = .black
 
         if uiView.text != text {
             uiView.text = text

@@ -9,7 +9,6 @@ public struct PasswordResetView: View {
         case reset
     }
 
-    @Environment(\.dismiss) private var dismiss
     @State private var step: Step = .email
     @State private var emailPrefix = ""
     @State private var verificationCode = ""
@@ -78,7 +77,6 @@ public struct PasswordResetView: View {
         .alert("비밀번호 변경 완료", isPresented: $showsCompletionAlert) {
             Button("로그인하기") {
                 onCompleted()
-                dismiss()
             }
         } message: {
             Text("새 비밀번호로 로그인해주세요.")
@@ -327,7 +325,6 @@ public struct PasswordResetView: View {
             step = .email
         case .email:
             onBack()
-            dismiss()
         }
     }
 
