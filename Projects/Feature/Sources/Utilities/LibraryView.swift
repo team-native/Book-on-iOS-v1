@@ -84,13 +84,16 @@ public struct LibraryView: View {
         HStack(spacing: 0) {
             sortButton("인기순", value: "POPULAR", scale: scale)
             sortButton("신간순", value: "NEW", scale: scale)
-        }.padding(3 * scale).background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 10 * scale))
+        }
+        .padding(3 * scale)
+        .background(Color(red: 241 / 255, green: 241 / 255, blue: 244 / 255))
+        .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
     }
 
     private func sortButton(_ title: String, value: String, scale: CGFloat) -> some View {
         Button(title) { sort = value; Task { await reload() } }
             .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-            .foregroundColor(sort == value ? .black : .secondary)
+            .foregroundColor(sort == value ? .black : FeatureAsset.Color.textDescription.swiftUIColor)
             .frame(width: 60 * scale, height: 30 * scale)
             .background(sort == value ? Color.white : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 8 * scale))

@@ -73,7 +73,7 @@ public struct BookDetailView: View {
                     }
                 }
                 .frame(width: 300 * scale, height: 60 * scale)
-                .background(Color(.secondarySystemBackground))
+                .background(Color(red: 241 / 255, green: 241 / 255, blue: 244 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 20 * scale))
             }.disabled(viewModel.isUpdatingFavorite)
         }.frame(maxWidth: .infinity).frame(height: 100 * scale).background(Color.white).overlay(alignment: .top) { Divider() }

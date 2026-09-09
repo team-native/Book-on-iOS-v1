@@ -58,7 +58,7 @@ struct Read365LinkView: View {
                     } label: {
                         HStack(alignment: .top, spacing: 10 * scale) {
                             Image(systemName: isAgreed ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(isAgreed ? FeatureAsset.Color.buttonColor.swiftUIColor : .secondary)
+                                .foregroundColor(isAgreed ? FeatureAsset.Color.buttonColor.swiftUIColor : FeatureAsset.Color.textDescription.swiftUIColor)
                             Text("독서마라톤 계정 연동을 위한 ")
                                 .foregroundColor(Color(red: 159/255, green: 159/255, blue: 164/255))
                             + Text("개인정보 제3자 제공")
