@@ -54,7 +54,7 @@ public struct SignUpEntryView: View {
                         SignUpFieldTitle("학교 이메일", scale: scale)
                         AuthTextField(
                             icon: "envelope",
-                            placeholder: "이메일 주소",
+                            placeholder: "s12345",
                             text: $emailPrefix,
                             suffix: "@gsm.hs.kr",
                             errorMessage: emailError,

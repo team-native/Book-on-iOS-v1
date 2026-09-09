@@ -89,7 +89,7 @@ public struct PasswordResetView: View {
             if step == .email {
                 AuthTextField(
                     icon: "envelope",
-                    placeholder: "이메일 주소",
+                    placeholder: "s12345",
                     text: $emailPrefix,
                     suffix: "@gsm.hs.kr",
                     keyboardType: .asciiCapable,

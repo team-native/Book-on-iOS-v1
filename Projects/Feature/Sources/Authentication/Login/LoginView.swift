@@ -68,7 +68,7 @@ public struct LoginView: View {
 
                 AuthTextField(
                     icon: "envelope",
-                    placeholder: "이메일 주소",
+                    placeholder: "s12345",
                     text: $email,
                     suffix: "@gsm.hs.kr",
                     errorMessage: emailError,

@@ -110,7 +110,7 @@ public struct RankingView: View {
                 Text(player.name).font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
                 AnimatedLoanCount(value: Double(player.loanCount) * Double(progress))
                     .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
-                    .foregroundColor(isFirst ? FeatureAsset.Color.buttonColor.swiftUIColor : .secondary)
+                    .foregroundColor(isFirst ? FeatureAsset.Color.buttonColor.swiftUIColor : FeatureAsset.Color.textDescription.swiftUIColor)
                 Spacer(minLength: 10 * scale)
                 ZStack(alignment: .top) {
                     WaveFillShape(
