@@ -23,4 +23,7 @@ public enum PushNotificationRoute: Sendable {
 public extension Notification.Name {
     /// App 타깃의 푸시 처리 결과를 Feature 화면 전환으로 전달합니다.
     static let bookOnPushNotificationRoute = Notification.Name("com.bookonios.push-notification-route")
+
+    /// 알림 설정 화면에서 권한 승인을 요청하면 App 타깃이 APNs/FCM 등록을 시작합니다.
+    static let bookOnRequestPushAuthorization = Notification.Name("com.bookonios.request-push-authorization")
 }
