@@ -169,6 +169,14 @@ private final class MarathonViewModel: ObservableObject {
 }
 
 public struct MyView: View {
+    private enum Layout {
+        static let designWidth: CGFloat = 392
+        static let contentWidth: CGFloat = 346
+        static let contentLeading: CGFloat = 23
+        static let marathonCardHeight: CGFloat = 126
+        static let cardCornerRadius: CGFloat = 16
+    }
+
     @Environment(\.scenePhase) private var scenePhase
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var showsNotificationSettings = false
@@ -204,7 +212,7 @@ public struct MyView: View {
     }
     public var body: some View {
         GeometryReader { geo in
-            let scale = geo.size.width / 392
+            let scale = geo.size.width / Layout.designWidth
             ZStack(alignment: .topLeading) {
                 Color.white
                 Text("내 서재").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 173 * scale, y: 74 * scale)
@@ -223,11 +231,16 @@ public struct MyView: View {
                     }
                     VStack(alignment: .leading, spacing: 5 * scale) {
                         Text("\(marathonViewModel.me?.user.name ?? marathonViewModel.myInfo?.profile.name ?? "사용자") 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
-                        Text(profileDetail).font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255))
+                        Text(profileDetail)
+                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                            .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     }
                 }.offset(x: 23 * scale, y: 108 * scale)
-                ProfileStatsCard(stats: profileStats, scale: scale).frame(width: 346 * scale).offset(x: 23 * scale, y: 188 * scale)
-                marathonCard(scale: scale).offset(x: 23 * scale, y: 288 * scale)
+                ProfileStatsCard(stats: profileStats, scale: scale)
+                    .frame(width: Layout.contentWidth * scale)
+                    .offset(x: Layout.contentLeading * scale, y: 188 * scale)
+                marathonCard(scale: scale)
+                    .offset(x: Layout.contentLeading * scale, y: 288 * scale)
                 VStack(spacing: 0) {
                     ForEach(menuItems, id: \.self) { item in
                         NavigationMenuRow(title: item, scale: scale, action: {
@@ -244,7 +257,9 @@ public struct MyView: View {
                         scale: scale,
                         action: { showsLogoutConfirmation = true }
                     )
-                }.frame(width: 346 * scale).offset(x: 23 * scale, y: 426 * scale)
+                }
+                .frame(width: Layout.contentWidth * scale)
+                .offset(x: Layout.contentLeading * scale, y: 426 * scale)
                 Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
             }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
@@ -360,7 +375,7 @@ public struct MyView: View {
                         .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
                 }
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                .foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255))
+                .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                 .padding(.top, 10 * scale)
 
                 GeometryReader { proxy in
@@ -376,12 +391,12 @@ public struct MyView: View {
 
                 Text("완주까지 \(max(targetPage - currentPage, 0))쪽 남았어요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                    .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     .padding(.top, 8 * scale)
             } else {
                 Text(marathonViewModel.errorMessage ?? "아직 연동하지 않았어요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                    .foregroundColor(Color(red: 142/255, green: 142/255, blue: 147/255))
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     .padding(.top, 10 * scale)
 
                 Capsule()
@@ -391,19 +406,19 @@ public struct MyView: View {
 
                 Text("토글을 켜면 독서마라톤 계정을 연동할 수 있어요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                    .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     .padding(.top, 8 * scale)
             }
         }
         .padding(.horizontal, 18 * scale)
         .padding(.vertical, 15 * scale)
-        .frame(width: 346 * scale, height: 126 * scale, alignment: .topLeading)
+        .frame(width: Layout.contentWidth * scale, height: Layout.marathonCardHeight * scale, alignment: .topLeading)
         .background(Color(red: 251/255, green: 251/255, blue: 252/255))
         .overlay(
-            RoundedRectangle(cornerRadius: 16 * scale)
+            RoundedRectangle(cornerRadius: Layout.cardCornerRadius * scale)
                 .stroke(Color(red: 243/255, green: 243/255, blue: 245/255), lineWidth: scale)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
+        .clipShape(RoundedRectangle(cornerRadius: Layout.cardCornerRadius * scale))
     }
 
     private var profileDetail: String {

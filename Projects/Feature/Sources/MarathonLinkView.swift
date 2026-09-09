@@ -28,7 +28,7 @@ struct MarathonLinkView: View {
                 VStack(alignment: .leading, spacing: 8 * scale) {
                     Text("계정연동")
                         .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale))
-                        .foregroundColor(.black)
+                        .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
 
                     Text("독서마라톤 아이디와 비밀번호를\n입력해 주세요")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
