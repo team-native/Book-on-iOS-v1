@@ -14,12 +14,20 @@ public struct BookDetailView: View {
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
-            ZStack(alignment: .bottom) {
+            ZStack {
                 Color.white.ignoresSafeArea()
-                if viewModel.isLoading { ProgressView() }
+                if viewModel.isLoading {
+                    ProgressView()
+                }
                 else if let book = viewModel.book { detail(book, scale: scale) }
-                else { errorView(scale: scale) }
-                AppBackButton(scale: scale, action: goBack).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).padding(.leading, 23 * scale).padding(.top, 64 * scale)
+                else {
+                    errorView(scale: scale)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                AppBackButton(scale: scale, action: goBack)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.leading, 23 * scale)
+                    .padding(.top, 64 * scale)
             }
         }.ignoresSafeArea().task { await viewModel.load() }
     }
@@ -80,7 +88,18 @@ public struct BookDetailView: View {
     }
 
     private func errorView(scale: CGFloat) -> some View {
-        VStack(spacing: 12 * scale) { Text(viewModel.errorMessage ?? "도서 정보를 불러오지 못했어요"); Button("재시도") { Task { await viewModel.load() } } }.multilineTextAlignment(.center)
+        VStack(spacing: 12 * scale) {
+            Text(viewModel.errorMessage ?? "도서 정보를 불러오지 못했어요")
+                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 15 * scale))
+                .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
+
+            Button("재시도") {
+                Task { await viewModel.load() }
+            }
+            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14 * scale))
+            .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+        }
+        .multilineTextAlignment(.center)
     }
 }
 
