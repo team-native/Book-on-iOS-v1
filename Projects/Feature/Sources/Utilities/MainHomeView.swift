@@ -196,11 +196,11 @@ public struct MainHomeView: View {
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 20 * scale))
                 HStack(spacing: 4 * scale) {
                     Image(systemName: "sparkles").font(.system(size: 8 * scale))
-                    Text("추천")
+                    Text("AI 추천")
                 }
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
                 .foregroundColor(.white)
-                .frame(width: 45 * scale, height: 22 * scale)
+                .frame(width: 58 * scale, height: 22 * scale)
                 .background(LinearGradient(colors: [Color(red: 147/255, green: 210/255, blue: 52/255), Color(red: 116/255, green: 163/255, blue: 46/255)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
                 Spacer()
