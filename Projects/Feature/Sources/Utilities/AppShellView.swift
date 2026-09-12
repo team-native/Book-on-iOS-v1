@@ -9,6 +9,7 @@ public struct AppShellView: View {
         case loanHistory
         case newArrivals
         case bookDetail(Int)
+        case passwordReset
 
         var id: String {
             switch self {
@@ -18,6 +19,7 @@ public struct AppShellView: View {
             case .loanHistory: return "loanHistory"
             case .newArrivals: return "newArrivals"
             case let .bookDetail(bookId): return "bookDetail-\(bookId)"
+            case .passwordReset: return "passwordReset"
             }
         }
     }
@@ -54,7 +56,11 @@ public struct AppShellView: View {
                             onShowBookDetail: { destination = .bookDetail($0) }
                         )
                     case .my:
-                        MyView(onSelectTab: selectTab, onLogout: onLogout)
+                        MyView(
+                            onSelectTab: selectTab,
+                            onShowPasswordReset: { destination = .passwordReset },
+                            onLogout: onLogout
+                        )
                     }
                 }
 
@@ -91,6 +97,11 @@ public struct AppShellView: View {
                 NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: { self.destination = .bookDetail($0) })
             case let .bookDetail(bookId):
                 BookDetailView(bookId: bookId, onBack: dismissDestination)
+            case .passwordReset:
+                PasswordResetView(
+                    onBack: dismissDestination,
+                    onCompleted: dismissDestination
+                )
             }
         }
     }
