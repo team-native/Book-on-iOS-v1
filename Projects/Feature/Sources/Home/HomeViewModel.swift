@@ -27,10 +27,11 @@ final class HomeViewModel: ObservableObject {
     }
 
     var displayedRecommendations: [BookRecommendation] {
-        if !recommendations.isEmpty {
-            return recommendations
-        }
-        return home?.todayRecommendation.map { [$0] } ?? []
+        let candidates = recommendations.isEmpty
+            ? home?.todayRecommendation.map { [$0] } ?? []
+            : recommendations
+
+        return candidates.filter { hasValidCoverImageURL($0.coverImageUrl) }
     }
 
     func load() async {
@@ -111,6 +112,17 @@ final class HomeViewModel: ObservableObject {
         else { return }
         dlsUnavailable = true
         dlsMessage = message
+    }
+
+    private func hasValidCoverImageURL(_ urlString: String?) -> Bool {
+        guard let urlString,
+              let url = URL(string: urlString),
+              let scheme = url.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              url.host != nil
+        else { return false }
+
+        return true
     }
 
     private func record(_ error: Error) {
