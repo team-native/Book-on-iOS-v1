@@ -8,7 +8,6 @@ struct Read365LinkView: View {
     let onLink: (String) -> Void
 
     @State private var webView: WKWebView?
-    @State private var isAgreed = false
     @State private var localError: String?
 
     var body: some View {
@@ -16,75 +15,74 @@ struct Read365LinkView: View {
             let scale = geo.size.width / FigmaDesign.size.width
 
             ZStack(alignment: .topLeading) {
-                FeatureAsset.Color.background.swiftUIColor.ignoresSafeArea()
+                Color(red: 246 / 255, green: 249 / 255, blue: 242 / 255)
+                    .ignoresSafeArea()
 
                 AppBackButton(scale: scale, action: onBack)
                     .frame(width: 40 * scale, height: 40 * scale)
-                    .background(FeatureAsset.Color.background.swiftUIColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10 * scale)
-                            .stroke(Color(red: 234/255, green: 234/255, blue: 236/255), lineWidth: 0.6 * scale)
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
+                    .background(Color.white)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.08), radius: 8 * scale, y: 3 * scale)
                     .offset(x: 25 * scale, y: 57 * scale)
 
-                SignUpProgressBar(currentStep: 3, scale: scale)
-                    .frame(width: 333 * scale, alignment: .leading)
-                    .offset(x: 30 * scale, y: 131 * scale)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 8 * scale) {
+                        FeatureAsset.Image.readingMarathonLogo.swiftUIImage
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24 * scale, height: 24 * scale)
+                            .padding(8 * scale)
+                            .background(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.14))
+                            .clipShape(RoundedRectangle(cornerRadius: 12 * scale))
+                        Text("2026 독서마라톤")
+                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 13 * scale))
+                            .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+                    }
 
-                VStack(alignment: .leading, spacing: 8 * scale) {
-                    Text("계정연동")
-                        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 28 * scale))
-                        .foregroundColor(.black)
-                    Text("read365 간편로그인을 진행해 주세요")
+                    Text("독서마라톤 계정 연동")
+                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 26 * scale))
+                        .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
+                        .padding(.top, 14 * scale)
+
+                    Text("아래 웹 화면에서 로그인한 뒤\n연동하기 버튼을 눌러주세요.")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
                         .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                         .lineSpacing(3 * scale)
-                }
-                .offset(x: 25 * scale, y: 191 * scale)
+                        .padding(.top, 8 * scale)
 
-                VStack(alignment: .leading, spacing: 12 * scale) {
-                    Read365WebView(webView: $webView)
-                        .frame(width: 342 * scale, height: 360 * scale)
-                        .clipShape(RoundedRectangle(cornerRadius: 14 * scale))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 14 * scale)
-                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                        }
+                    VStack(alignment: .leading, spacing: 12 * scale) {
+                        Text("독서마라톤 로그인")
+                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 13 * scale))
+                            .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
 
-                    Button {
-                        isAgreed.toggle()
-                        localError = nil
-                    } label: {
-                        HStack(alignment: .top, spacing: 10 * scale) {
-                            Image(systemName: isAgreed ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(isAgreed ? FeatureAsset.Color.buttonColor.swiftUIColor : FeatureAsset.Color.textDescription.swiftUIColor)
-                            Text("독서마라톤 계정 연동을 위한 ")
-                                .foregroundColor(Color(red: 159/255, green: 159/255, blue: 164/255))
-                            + Text("개인정보 제3자 제공")
-                                .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
-                            + Text("에\n동의합니다.")
-                                .foregroundColor(Color(red: 159/255, green: 159/255, blue: 164/255))
-                        }
-                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                        Read365WebView(webView: $webView)
+                            .frame(height: 410 * scale)
+                            .clipShape(RoundedRectangle(cornerRadius: 16 * scale))
                     }
-                    .buttonStyle(.plain)
+                    .padding(14 * scale)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 20 * scale))
+                    .shadow(color: .black.opacity(0.08), radius: 16 * scale, y: 6 * scale)
+                    .padding(.top, 24 * scale)
 
                     if let message = localError ?? serverError {
                         InlineErrorText(message: message, scale: scale)
                             .lineLimit(2)
-                            .frame(width: 342 * scale, alignment: .leading)
+                            .padding(.top, 10 * scale)
                     }
-                }
-                .offset(x: 25 * scale, y: 296 * scale)
 
-                PrimaryButton(
-                    title: isSubmitting ? "연동 중..." : "로그인 완료 · 연동하기",
-                    scale: scale,
-                    isEnabled: !isSubmitting,
-                    action: submit
-                )
-                .offset(x: 47 * scale, y: 734 * scale)
+                    Spacer(minLength: 16 * scale)
+
+                    PrimaryButton(
+                        title: isSubmitting ? "연동 중..." : "로그인 완료 · 연동하기",
+                        scale: scale,
+                        isEnabled: !isSubmitting,
+                        action: submit
+                    )
+                }
+                .padding(.horizontal, 25 * scale)
+                .padding(.top, 120 * scale)
+                .padding(.bottom, 28 * scale)
             }
         }
         .ignoresSafeArea()
@@ -95,11 +93,6 @@ struct Read365LinkView: View {
             localError = "로그인 화면을 불러오는 중입니다. 잠시 후 다시 시도해주세요."
             return
         }
-        guard isAgreed else {
-            localError = "개인정보 제3자 제공에 동의해주세요."
-            return
-        }
-
         webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
             let cookieHeader = cookies
                 .filter { cookie in

@@ -341,31 +341,40 @@ public struct MyView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20 * scale, height: 20 * scale)
+                    .padding(7 * scale)
+                    .background(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.14))
+                    .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
 
                 Text("2026 독서마라톤")
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
+                    .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
 
                 Spacer()
 
                 if marathonViewModel.isLoading {
                     ProgressView().scaleEffect(0.8)
+                } else if isLinked {
+                    Text("연동됨")
+                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 11 * scale))
+                        .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
+                        .padding(.horizontal, 10 * scale)
+                        .frame(height: 28 * scale)
+                        .background(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.12))
+                        .clipShape(Capsule())
                 } else {
-                    Toggle(
-                        "",
-                        isOn: Binding(
-                            get: { isLinked },
-                            set: { shouldLink in
-                                if shouldLink && !isLinked { showsRead365Link = true }
-                            }
-                        )
-                    )
-                        .labelsHidden()
-                        .tint(FeatureAsset.Color.buttonColor.swiftUIColor)
-                        .scaleEffect(0.78)
-                        .frame(width: 44 * scale, height: 28 * scale)
+                    Button("연동하기") {
+                        showsRead365Link = true
+                    }
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 11 * scale))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 11 * scale)
+                    .frame(height: 28 * scale)
+                    .background(FeatureAsset.Color.buttonColor.swiftUIColor)
+                    .clipShape(Capsule())
+                    .buttonStyle(.plain)
                 }
             }
-            .frame(height: 20 * scale)
+            .frame(height: 34 * scale)
 
             if isLinked {
                 HStack {
@@ -376,7 +385,7 @@ public struct MyView: View {
                 }
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                 .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
-                .padding(.top, 10 * scale)
+                .padding(.top, 8 * scale)
 
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
@@ -397,7 +406,7 @@ public struct MyView: View {
                 Text(marathonViewModel.errorMessage ?? "아직 연동하지 않았어요")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
-                    .padding(.top, 10 * scale)
+                    .padding(.top, 8 * scale)
 
                 Capsule()
                     .fill(Color(red: 217/255, green: 217/255, blue: 217/255))
@@ -410,13 +419,13 @@ public struct MyView: View {
                     .padding(.top, 8 * scale)
             }
         }
-        .padding(.horizontal, 18 * scale)
-        .padding(.vertical, 15 * scale)
+        .padding(.horizontal, 16 * scale)
+        .padding(.vertical, 13 * scale)
         .frame(width: Layout.contentWidth * scale, height: Layout.marathonCardHeight * scale, alignment: .topLeading)
-        .background(Color(red: 251/255, green: 251/255, blue: 252/255))
+        .background(Color(red: 244/255, green: 250/255, blue: 235/255))
         .overlay(
             RoundedRectangle(cornerRadius: Layout.cardCornerRadius * scale)
-                .stroke(Color(red: 243/255, green: 243/255, blue: 245/255), lineWidth: scale)
+                .stroke(FeatureAsset.Color.buttonColor.swiftUIColor.opacity(0.28), lineWidth: scale)
         )
         .clipShape(RoundedRectangle(cornerRadius: Layout.cardCornerRadius * scale))
     }
