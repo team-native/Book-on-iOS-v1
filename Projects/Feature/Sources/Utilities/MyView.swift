@@ -180,7 +180,6 @@ public struct MyView: View {
     @Environment(\.scenePhase) private var scenePhase
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var showsNotificationSettings = false
-    @State private var showsPasswordReset = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
     @State private var selectedFavoriteBookId: Int?
@@ -189,6 +188,7 @@ public struct MyView: View {
     @State private var showsProfileImageSettings = false
     @StateObject private var marathonViewModel: MarathonViewModel
     private let onSelectTab: (BottomTabBar.Item) -> Void
+    private let onShowPasswordReset: () -> Void
     private let onLogout: () -> Void
 
     public init(
@@ -197,6 +197,7 @@ public struct MyView: View {
         loanService: LoanService = LoanService(),
         read365Service: Read365Service = Read365Service(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
+        onShowPasswordReset: @escaping () -> Void = {},
         onLogout: @escaping () -> Void = {}
     ) {
         _marathonViewModel = StateObject(
@@ -208,6 +209,7 @@ public struct MyView: View {
             )
         )
         self.onSelectTab = onSelectTab
+        self.onShowPasswordReset = onShowPasswordReset
         self.onLogout = onLogout
     }
     public var body: some View {
@@ -244,7 +246,7 @@ public struct MyView: View {
                 VStack(spacing: 0) {
                     ForEach(menuItems, id: \.self) { item in
                         NavigationMenuRow(title: item, scale: scale, action: {
-                            if item == "비밀번호 변경" { showsPasswordReset = true }
+                            if item == "비밀번호 변경" { onShowPasswordReset() }
                             if item == "알림 설정" { showsNotificationSettings = true }
                             if item == "대출 / 반납 내역" { showsLoanHistory = true }
                             if item == "즐겨찾기 목록" { showsFavorites = true }
@@ -271,12 +273,6 @@ public struct MyView: View {
             Task { await marathonViewModel.load() }
         }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
-        .fullScreenCover(isPresented: $showsPasswordReset) {
-            PasswordResetView(
-                onBack: { showsPasswordReset = false },
-                onCompleted: { showsPasswordReset = false }
-            )
-        }
         .sheet(isPresented: $showsProfileImageSettings) {
             ProfileImageSettingsView(
                 profileImagePath: marathonViewModel.me?.user.profileImageUrl,
