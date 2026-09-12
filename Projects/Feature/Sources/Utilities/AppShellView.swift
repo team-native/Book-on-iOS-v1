@@ -26,6 +26,7 @@ public struct AppShellView: View {
 
     @State private var selectedTab: BottomTabBar.Item = .home
     @State private var destination: Destination?
+    @State private var previousDestination: Destination?
     private let onLogout: () -> Void
 
     public init(onLogout: @escaping () -> Void = {}) {
@@ -46,14 +47,14 @@ public struct AppShellView: View {
                             onShowNotifications: { destination = .notifications },
                             onShowNotices: { destination = .notices },
                             onShowNewArrivals: { destination = .newArrivals },
-                            onShowBookDetail: { destination = .bookDetail($0) }
+                            onShowBookDetail: showBookDetail
                         )
                     case .ranking:
                         RankingView(onSelectTab: selectTab)
                     case .library:
                         LibraryView(
                             onSelectTab: selectTab,
-                            onShowBookDetail: { destination = .bookDetail($0) }
+                            onShowBookDetail: showBookDetail
                         )
                     case .my:
                         MyView(
@@ -83,7 +84,7 @@ public struct AppShellView: View {
             switch destination {
             case .search:
                 SearchView(
-                    onShowBookDetail: { self.destination = .bookDetail($0) },
+                    onShowBookDetail: showBookDetail,
                     showsDismissButton: true,
                     onDismiss: dismissDestination
                 )
@@ -94,9 +95,9 @@ public struct AppShellView: View {
             case .loanHistory:
                 LoanHistoryView(onBack: dismissDestination)
             case .newArrivals:
-                NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: { self.destination = .bookDetail($0) })
+                NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: showBookDetail)
             case let .bookDetail(bookId):
-                BookDetailView(bookId: bookId, onBack: dismissDestination)
+                BookDetailView(bookId: bookId, onBack: dismissBookDetail)
             case .passwordReset:
                 PasswordResetView(
                     onBack: dismissDestination,
@@ -113,6 +114,17 @@ public struct AppShellView: View {
 
     private func dismissDestination() {
         destination = nil
+        previousDestination = nil
+    }
+
+    private func showBookDetail(_ bookId: Int) {
+        previousDestination = destination
+        destination = .bookDetail(bookId)
+    }
+
+    private func dismissBookDetail() {
+        destination = previousDestination
+        previousDestination = nil
     }
 }
 
