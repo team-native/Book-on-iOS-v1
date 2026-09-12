@@ -169,6 +169,17 @@ private final class MarathonViewModel: ObservableObject {
 }
 
 public struct MyView: View {
+    private enum FullScreenDestination: Identifiable {
+        case passwordReset
+
+        var id: String {
+            switch self {
+            case .passwordReset:
+                return "passwordReset"
+            }
+        }
+    }
+
     private enum Layout {
         static let designWidth: CGFloat = 392
         static let contentWidth: CGFloat = 346
@@ -180,7 +191,7 @@ public struct MyView: View {
     @Environment(\.scenePhase) private var scenePhase
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var showsNotificationSettings = false
-    @State private var showsPasswordReset = false
+    @State private var fullScreenDestination: FullScreenDestination?
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
     @State private var selectedFavoriteBookId: Int?
@@ -244,7 +255,7 @@ public struct MyView: View {
                 VStack(spacing: 0) {
                     ForEach(menuItems, id: \.self) { item in
                         NavigationMenuRow(title: item, scale: scale, action: {
-                            if item == "비밀번호 변경" { showsPasswordReset = true }
+                            if item == "비밀번호 변경" { fullScreenDestination = .passwordReset }
                             if item == "알림 설정" { showsNotificationSettings = true }
                             if item == "대출 / 반납 내역" { showsLoanHistory = true }
                             if item == "즐겨찾기 목록" { showsFavorites = true }
@@ -271,11 +282,14 @@ public struct MyView: View {
             Task { await marathonViewModel.load() }
         }
         .sheet(isPresented: $showsNotificationSettings) { NotificationSettingsView() }
-        .fullScreenCover(isPresented: $showsPasswordReset) {
-            PasswordResetView(
-                onBack: { showsPasswordReset = false },
-                onCompleted: { showsPasswordReset = false }
-            )
+        .fullScreenCover(item: $fullScreenDestination) { destination in
+            switch destination {
+            case .passwordReset:
+                PasswordResetView(
+                    onBack: { fullScreenDestination = nil },
+                    onCompleted: { fullScreenDestination = nil }
+                )
+            }
         }
         .sheet(isPresented: $showsProfileImageSettings) {
             ProfileImageSettingsView(
