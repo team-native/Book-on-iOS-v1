@@ -9,7 +9,6 @@ public struct AppShellView: View {
         case loanHistory
         case newArrivals
         case bookDetail(Int)
-        case passwordReset
 
         var id: String {
             switch self {
@@ -19,7 +18,6 @@ public struct AppShellView: View {
             case .loanHistory: return "loanHistory"
             case .newArrivals: return "newArrivals"
             case let .bookDetail(bookId): return "bookDetail-\(bookId)"
-            case .passwordReset: return "passwordReset"
             }
         }
     }
@@ -28,6 +26,7 @@ public struct AppShellView: View {
     @State private var destination: Destination?
     @State private var previousDestination: Destination?
     @State private var pendingDestinationAfterDismissal: Destination?
+    @State private var showsPasswordReset = false
     private let onLogout: () -> Void
 
     public init(onLogout: @escaping () -> Void = {}) {
@@ -60,7 +59,7 @@ public struct AppShellView: View {
                     case .my:
                         MyView(
                             onSelectTab: selectTab,
-                            onShowPasswordReset: { destination = .passwordReset },
+                            onShowPasswordReset: { showsPasswordReset = true },
                             onLogout: onLogout
                         )
                     }
@@ -102,9 +101,14 @@ public struct AppShellView: View {
                     bookId: bookId,
                     onBack: prepareBookDetailDismissal
                 )
-            case .passwordReset:
-                DismissablePasswordResetView()
             }
+        }
+        .fullScreenCover(isPresented: $showsPasswordReset) {
+            PasswordResetView(
+                onBack: { showsPasswordReset = false },
+                onCompleted: { showsPasswordReset = false },
+                exitsToPreviousScreenOnBack: true
+            )
         }
     }
 
@@ -147,17 +151,6 @@ private struct DismissableBookDetailView: View {
             onBack()
             dismiss()
         }
-    }
-}
-
-private struct DismissablePasswordResetView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        PasswordResetView(
-            onBack: { dismiss() },
-            onCompleted: { dismiss() }
-        )
     }
 }
 
