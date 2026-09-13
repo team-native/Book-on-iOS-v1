@@ -27,6 +27,7 @@ public struct AppShellView: View {
     @State private var selectedTab: BottomTabBar.Item = .home
     @State private var destination: Destination?
     @State private var previousDestination: Destination?
+    @State private var pendingDestinationAfterDismissal: Destination?
     private let onLogout: () -> Void
 
     public init(onLogout: @escaping () -> Void = {}) {
@@ -80,7 +81,7 @@ public struct AppShellView: View {
                 destination = .notices
             }
         }
-        .fullScreenCover(item: $destination) { destination in
+        .fullScreenCover(item: $destination, onDismiss: restorePendingDestination) { destination in
             switch destination {
             case .search:
                 SearchView(
@@ -97,12 +98,12 @@ public struct AppShellView: View {
             case .newArrivals:
                 NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: showBookDetail)
             case let .bookDetail(bookId):
-                BookDetailView(bookId: bookId, onBack: dismissBookDetail)
-            case .passwordReset:
-                PasswordResetView(
-                    onBack: dismissDestination,
-                    onCompleted: dismissDestination
+                DismissableBookDetailView(
+                    bookId: bookId,
+                    onBack: prepareBookDetailDismissal
                 )
+            case .passwordReset:
+                DismissablePasswordResetView()
             }
         }
     }
@@ -122,9 +123,41 @@ public struct AppShellView: View {
         destination = .bookDetail(bookId)
     }
 
-    private func dismissBookDetail() {
-        destination = previousDestination
+    private func prepareBookDetailDismissal() {
+        pendingDestinationAfterDismissal = previousDestination
         previousDestination = nil
+    }
+
+    private func restorePendingDestination() {
+        guard let pendingDestinationAfterDismissal else { return }
+
+        self.pendingDestinationAfterDismissal = nil
+        destination = pendingDestinationAfterDismissal
+    }
+}
+
+private struct DismissableBookDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let bookId: Int
+    let onBack: () -> Void
+
+    var body: some View {
+        BookDetailView(bookId: bookId) {
+            onBack()
+            dismiss()
+        }
+    }
+}
+
+private struct DismissablePasswordResetView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        PasswordResetView(
+            onBack: { dismiss() },
+            onCompleted: { dismiss() }
+        )
     }
 }
 
