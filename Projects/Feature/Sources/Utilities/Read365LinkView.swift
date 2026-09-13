@@ -79,6 +79,7 @@ struct Read365LinkView: View {
                         isEnabled: !isSubmitting,
                         action: submit
                     )
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .padding(.horizontal, 25 * scale)
                 .padding(.top, 120 * scale)
