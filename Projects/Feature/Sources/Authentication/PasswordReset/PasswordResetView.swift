@@ -23,15 +23,18 @@ public struct PasswordResetView: View {
     private let service: PasswordResetService
     private let onBack: () -> Void
     private let onCompleted: () -> Void
+    private let exitsToPreviousScreenOnBack: Bool
 
     public init(
         service: PasswordResetService = PasswordResetService(),
         onBack: @escaping () -> Void = {},
-        onCompleted: @escaping () -> Void = {}
+        onCompleted: @escaping () -> Void = {},
+        exitsToPreviousScreenOnBack: Bool = false
     ) {
         self.service = service
         self.onBack = onBack
         self.onCompleted = onCompleted
+        self.exitsToPreviousScreenOnBack = exitsToPreviousScreenOnBack
     }
 
     public var body: some View {
@@ -317,6 +320,11 @@ public struct PasswordResetView: View {
     private func goBack() {
         hideKeyboard()
         errorMessage = nil
+
+        guard !exitsToPreviousScreenOnBack else {
+            onBack()
+            return
+        }
 
         switch step {
         case .reset:
