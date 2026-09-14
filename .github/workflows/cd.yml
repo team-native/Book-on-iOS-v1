@@ -73,7 +73,7 @@ jobs:
           openssl smime -inform der -verify -noverify -in $PP_PATH -out $PP_PLIST_PATH 2>/dev/null
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' $PP_PLIST_PATH)
           PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' $PP_PLIST_PATH)
-          test "$PROFILE_NAME" = "BookOn App Store"
+          test "$PROFILE_NAME" = "BookOn App Store Associated Domains"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
