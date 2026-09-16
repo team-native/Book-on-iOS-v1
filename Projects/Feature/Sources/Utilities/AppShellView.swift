@@ -78,6 +78,8 @@ public struct AppShellView: View {
                 destination = .loanHistory
             case .notices:
                 destination = .notices
+            case .newArrivals:
+                destination = .newArrivals
             }
         }
         .fullScreenCover(item: $destination, onDismiss: restorePendingDestination) { destination in
