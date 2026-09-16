@@ -4,6 +4,7 @@ import Foundation
 public enum PushNotificationRoute: Sendable {
     case loanHistory
     case notices
+    case newArrivals
 
     public init?(userInfo: [AnyHashable: Any]) {
         guard let type = userInfo["type"] as? String else { return nil }
@@ -13,6 +14,8 @@ public enum PushNotificationRoute: Sendable {
             self = .loanHistory
         case "notice":
             self = .notices
+        case "new_book":
+            self = .newArrivals
         default:
             // 서버가 새 알림 타입을 추가하더라도 앱이 예기치 않은 화면으로 이동하지 않게 합니다.
             return nil
