@@ -267,7 +267,6 @@ public struct MyView: View {
         }
         .ignoresSafeArea()
         .task { await marathonViewModel.load() }
-        .onAppear { Task { await marathonViewModel.load() } }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }
             Task { await marathonViewModel.load() }
