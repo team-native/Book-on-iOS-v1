@@ -6,9 +6,7 @@ let project = Project.makeModule(
     product: .framework,
     organizationName: "Book-on-iOS",
     deploymentTargets: .iOS("16.0"),
-    dependencies: [
-        .project(target: "ThirdPartyLib", path: .relativeToRoot("Projects/ThirdPartyLib")),
-    ],
+    dependencies: [],
     sources: ["Sources/**"],
     infoPlist: .default
 )

@@ -15,7 +15,6 @@ let project = Project.makeModule(
     dependencies: [
         .project(target: "Feature", path: .relativeToRoot("Projects/Feature")),
         .project(target: "Service", path: .relativeToRoot("Projects/Service")),
-        .project(target: "ThirdPartyLib", path: .relativeToRoot("Projects/ThirdPartyLib")),
         .package(product: "FirebaseCore"),
         .package(product: "FirebaseMessaging"),
     ],
