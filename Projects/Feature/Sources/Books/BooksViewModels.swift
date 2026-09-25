@@ -1,6 +1,18 @@
 import Foundation
 import Service
 
+private struct PagingState {
+    private(set) var page = 1
+    private(set) var hasNext = false
+
+    var nextPage: Int { page + 1 }
+
+    mutating func update(from pagination: Pagination) {
+        page = pagination.page
+        hasNext = pagination.hasNext
+    }
+}
+
 @MainActor
 final class LibraryViewModel: ObservableObject {
     @Published var books: [BookSummary] = []
@@ -8,8 +20,7 @@ final class LibraryViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     private let service: BooksService
-    private var page = 1
-    private var hasNext = false
+    private var paging = PagingState()
     private var lastSort = "POPULAR"
     private var lastCategory: String?
     init(service: BooksService) { self.service = service }
@@ -20,7 +31,7 @@ final class LibraryViewModel: ObservableObject {
         async let categoryData = service.fetchCategories()
         do {
             let result = try await bookData
-            books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext
+            books = result.items; paging.update(from: result.pagination)
             lastSort = sort; lastCategory = category
         } catch { errorMessage = error.localizedDescription }
         do { categories = try await categoryData }
@@ -28,9 +39,9 @@ final class LibraryViewModel: ObservableObject {
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
-        guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
+        guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.fetchBooks(sort: lastSort, category: lastCategory, page: page + 1); books += result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.fetchBooks(sort: lastSort, category: lastCategory, page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
@@ -42,8 +53,7 @@ final class SearchBooksViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     private let service: BooksService
-    private var page = 1
-    private var hasNext = false
+    private var paging = PagingState()
     private var keyword = ""
     init(service: BooksService) { self.service = service }
     func search(_ keyword: String) async {
@@ -51,14 +61,14 @@ final class SearchBooksViewModel: ObservableObject {
         guard !keyword.isEmpty else { return }
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
-        do { let result = try await service.searchBooks(keyword: keyword, size: 100); books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext; self.keyword = keyword }
+        do { let result = try await service.searchBooks(keyword: keyword, size: 100); books = result.items; paging.update(from: result.pagination); self.keyword = keyword }
         catch { books = []; errorMessage = error.localizedDescription }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
-        guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
+        guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.searchBooks(keyword: keyword, page: page + 1, size: 100); books += result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.searchBooks(keyword: keyword, page: paging.nextPage, size: 100); books += result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
@@ -70,20 +80,19 @@ final class NewBooksViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     private let service: BooksService
-    private var page = 1
-    private var hasNext = false
+    private var paging = PagingState()
     init(service: BooksService) { self.service = service }
     func load() async {
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
-        do { let result = try await service.fetchNewBooks(); books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.fetchNewBooks(); books = result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
-        guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
+        guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.fetchNewBooks(page: page + 1); books += result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.fetchNewBooks(page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
@@ -122,19 +131,18 @@ final class FavoritesViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     private let service: BooksService
-    private var page = 1
-    private var hasNext = false
+    private var paging = PagingState()
     init(service: BooksService) { self.service = service }
     func load() async {
         isLoading = true; errorMessage = nil
-        do { let result = try await service.fetchFavoriteBooks(); books = result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.fetchFavoriteBooks(); books = result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: FavoriteBook) async {
-        guard currentBook.id == books.last?.id, hasNext, !isLoading else { return }
+        guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
-        do { let result = try await service.fetchFavoriteBooks(page: page + 1); books += result.items; page = result.pagination.page; hasNext = result.pagination.hasNext }
+        do { let result = try await service.fetchFavoriteBooks(page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
