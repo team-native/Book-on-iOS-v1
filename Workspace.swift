@@ -6,6 +6,5 @@ let workspace = Workspace(
         "Projects/App",
         "Projects/Feature",
         "Projects/Service",
-        "Projects/ThirdPartyLib"
     ]
 )
