@@ -16,9 +16,7 @@ private final class NotificationSettingsViewModel: ObservableObject {
         isLoading = true; errorMessage = nil
         do {
             let value = try await service.fetchMe().notificationSettings
-            dueDateReminder = value.dueDateReminder
-            newBookReminder = value.newBookReminder
-            noticeReminder = value.noticeReminder
+            apply(value)
         } catch { errorMessage = error.localizedDescription }
         isLoading = false
     }
@@ -31,9 +29,7 @@ private final class NotificationSettingsViewModel: ObservableObject {
                 newBookReminder: newBookReminder,
                 noticeReminder: noticeReminder
             ))
-            dueDateReminder = value.dueDateReminder
-            newBookReminder = value.newBookReminder
-            noticeReminder = value.noticeReminder
+            apply(value)
             isLoading = false
             return true
         } catch {
@@ -41,6 +37,12 @@ private final class NotificationSettingsViewModel: ObservableObject {
             isLoading = false
             return false
         }
+    }
+
+    private func apply(_ settings: NotificationSettings) {
+        dueDateReminder = settings.dueDateReminder
+        newBookReminder = settings.newBookReminder
+        noticeReminder = settings.noticeReminder
     }
 }
 
