@@ -109,6 +109,7 @@ final class BookDetailViewModel: ObservableObject {
     private let service: BooksService
     init(bookId: Int, service: BooksService) { self.bookId = bookId; self.service = service }
     func load() async {
+        guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let value = try await service.fetchBookDetail(bookId: bookId); book = value; isFavorite = value.favorite }
         catch { errorMessage = error.localizedDescription }
@@ -134,6 +135,7 @@ final class FavoritesViewModel: ObservableObject {
     private var paging = PagingState()
     init(service: BooksService) { self.service = service }
     func load() async {
+        guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let result = try await service.fetchFavoriteBooks(); books = result.items; paging.update(from: result.pagination) }
         catch { errorMessage = error.localizedDescription }
