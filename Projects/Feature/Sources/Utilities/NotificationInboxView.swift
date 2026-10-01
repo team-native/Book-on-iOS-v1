@@ -23,7 +23,7 @@ private final class NotificationInboxViewModel: ObservableObject {
         do {
             notifications = try await service.fetchNotifications().notifications
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 
@@ -43,7 +43,7 @@ private final class NotificationInboxViewModel: ObservableObject {
                 deepLink: notification.deepLink
             )
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }

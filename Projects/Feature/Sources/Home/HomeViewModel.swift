@@ -127,7 +127,7 @@ final class HomeViewModel: ObservableObject {
 
     private func record(_ error: Error) {
         if errorMessage == nil {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }

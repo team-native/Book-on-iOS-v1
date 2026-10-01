@@ -17,7 +17,7 @@ private final class NotificationSettingsViewModel: ObservableObject {
         do {
             let value = try await service.fetchMe().notificationSettings
             apply(value)
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
 
@@ -33,7 +33,7 @@ private final class NotificationSettingsViewModel: ObservableObject {
             isLoading = false
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
             isLoading = false
             return false
         }

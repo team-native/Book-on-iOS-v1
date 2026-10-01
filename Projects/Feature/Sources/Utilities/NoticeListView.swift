@@ -23,7 +23,7 @@ private final class NoticeListViewModel: ObservableObject {
         do {
             notices = try await service.fetchNotices(page: 1, size: 30).items
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 }

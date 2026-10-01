@@ -29,7 +29,7 @@ private final class LoanHistoryViewModel: ObservableObject {
                 if loadRequestID == requestID { history = result }
             }
         } catch {
-            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+            if loadRequestID == requestID { errorMessage = UserFacingError.message(for: error) }
         }
     }
 
@@ -39,7 +39,7 @@ private final class LoanHistoryViewModel: ObservableObject {
         do {
             _ = try await service.extendLoan(loanId: loan.loanId)
             currentLoans = try await service.fetchCurrentLoans()
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = UserFacingError.message(for: error) }
         extendingLoanId = nil
     }
 }
