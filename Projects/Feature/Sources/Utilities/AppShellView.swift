@@ -109,11 +109,7 @@ public struct AppShellView: View {
             }
         }
         .fullScreenCover(isPresented: $showsPasswordReset) {
-            PasswordResetView(
-                onBack: { showsPasswordReset = false },
-                onCompleted: { showsPasswordReset = false },
-                exitsToPreviousScreenOnBack: true
-            )
+            DismissablePasswordResetView()
         }
     }
 
@@ -155,6 +151,18 @@ public struct AppShellView: View {
 
         self.pendingDestinationAfterDismissal = nil
         destination = pendingDestinationAfterDismissal
+    }
+}
+
+private struct DismissablePasswordResetView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        PasswordResetView(
+            onBack: { dismiss() },
+            onCompleted: { dismiss() },
+            exitsToPreviousScreenOnBack: true
+        )
     }
 }
 
