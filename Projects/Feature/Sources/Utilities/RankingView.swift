@@ -43,7 +43,7 @@ public struct RankingView: View {
             ZStack(alignment: .topLeading) {
                 Color.white.ignoresSafeArea()
                 Text("다독왕 랭킹").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale)).offset(x: 26 * scale, y: 69 * scale)
-                Text("\(viewModel.data?.year ?? Calendar.current.component(.year, from: Date()))년 · 대출 권수 기준 · 매년 1월 1일 초기화")
+                Text("\(String(viewModel.data?.year ?? Calendar.current.component(.year, from: Date())))년 · 대출 권수 기준 · 매년 1월 1일 초기화")
                     .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
                     .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255)).offset(x: 26 * scale, y: 110 * scale)
 
@@ -54,7 +54,18 @@ public struct RankingView: View {
                         Text(error).multilineTextAlignment(.center)
                         Button("재시도") { Task { await viewModel.load() } }
                     }.frame(width: geo.size.width, height: geo.size.height)
-                } else {
+                } else if let data = viewModel.data, data.items.isEmpty {
+                    VStack(spacing: 12 * scale) {
+                        Image(systemName: "books.vertical")
+                            .font(.system(size: 44 * scale, weight: .light))
+                        Text("표시할 랭킹이 아직 없어요")
+                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 16 * scale))
+                        Text("대출 기록이 등록되면 여기에 표시됩니다.")
+                            .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
+                    }
+                    .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                } else if viewModel.data != nil {
                     podium(scale: scale).offset(x: 28 * scale, y: 166 * scale)
                     rankingList(scale: scale).offset(x: 25 * scale, y: 406 * scale)
                 }
