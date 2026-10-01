@@ -91,7 +91,10 @@ public struct AppShellView: View {
                     onDismiss: dismissDestination
                 )
             case .notifications:
-                NotificationInboxView(onDismiss: dismissDestination)
+                NotificationInboxView(
+                    onDismiss: dismissDestination,
+                    onSelectRoute: showNotificationRoute
+                )
             case .notices:
                 NoticeListView(onBack: dismissDestination)
             case .loanHistory:
@@ -127,6 +130,19 @@ public struct AppShellView: View {
     private func showBookDetail(_ bookId: Int) {
         previousDestination = destination
         destination = .bookDetail(bookId)
+    }
+
+    private func showNotificationRoute(_ route: PushNotificationRoute) {
+        switch route {
+        case .loanHistory:
+            pendingDestinationAfterDismissal = .loanHistory
+        case .notices:
+            pendingDestinationAfterDismissal = .notices
+        case .newArrivals:
+            pendingDestinationAfterDismissal = .newArrivals
+        }
+        destination = nil
+        previousDestination = nil
     }
 
     private func prepareBookDetailDismissal() {

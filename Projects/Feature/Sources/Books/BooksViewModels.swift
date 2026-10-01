@@ -23,27 +23,48 @@ final class LibraryViewModel: ObservableObject {
     private var paging = PagingState()
     private var lastSort = "POPULAR"
     private var lastCategory: String?
+    private var loadRequestID = UUID()
     init(service: BooksService) { self.service = service }
     func load(sort: String, category: String?) async {
-        guard !isLoading else { return }
+        let requestID = UUID()
+        loadRequestID = requestID
+        if lastSort != sort || lastCategory != category {
+            books = []
+            paging = PagingState()
+        }
         isLoading = true; errorMessage = nil
         async let bookData = service.fetchBooks(sort: sort, category: category)
         async let categoryData = service.fetchCategories()
         do {
             let result = try await bookData
-            books = result.items; paging.update(from: result.pagination)
-            lastSort = sort; lastCategory = category
-        } catch { errorMessage = error.localizedDescription }
-        do { categories = try await categoryData }
-        catch { if errorMessage == nil { errorMessage = error.localizedDescription } }
-        isLoading = false
+            if loadRequestID == requestID {
+                books = result.items; paging.update(from: result.pagination)
+                lastSort = sort; lastCategory = category
+            }
+        } catch {
+            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+        }
+        do {
+            let result = try await categoryData
+            if loadRequestID == requestID { categories = result }
+        } catch {
+            if loadRequestID == requestID, errorMessage == nil { errorMessage = error.localizedDescription }
+        }
+        if loadRequestID == requestID { isLoading = false }
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
         guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
+        let requestID = loadRequestID
         isLoading = true
-        do { let result = try await service.fetchBooks(sort: lastSort, category: lastCategory, page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
-        isLoading = false
+        do {
+            let result = try await service.fetchBooks(sort: lastSort, category: lastCategory, page: paging.nextPage)
+            if loadRequestID == requestID {
+                books += result.items; paging.update(from: result.pagination)
+            }
+        } catch {
+            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+        }
+        if loadRequestID == requestID { isLoading = false }
     }
 }
 
@@ -55,22 +76,40 @@ final class SearchBooksViewModel: ObservableObject {
     private let service: BooksService
     private var paging = PagingState()
     private var keyword = ""
+    private var searchRequestID = UUID()
     init(service: BooksService) { self.service = service }
     func search(_ keyword: String) async {
         let keyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !keyword.isEmpty else { return }
-        guard !isLoading else { return }
+        let requestID = UUID()
+        searchRequestID = requestID
+        self.keyword = keyword
+        books = []
+        paging = PagingState()
         isLoading = true; errorMessage = nil
-        do { let result = try await service.searchBooks(keyword: keyword, size: 100); books = result.items; paging.update(from: result.pagination); self.keyword = keyword }
-        catch { books = []; errorMessage = error.localizedDescription }
-        isLoading = false
+        do {
+            let result = try await service.searchBooks(keyword: keyword, size: 100)
+            guard searchRequestID == requestID else { return }
+            books = result.items; paging.update(from: result.pagination); self.keyword = keyword
+        } catch {
+            guard searchRequestID == requestID else { return }
+            books = []; errorMessage = error.localizedDescription
+        }
+        if searchRequestID == requestID { isLoading = false }
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
         guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
+        let requestID = searchRequestID
         isLoading = true
-        do { let result = try await service.searchBooks(keyword: keyword, page: paging.nextPage, size: 100); books += result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
-        isLoading = false
+        do {
+            let result = try await service.searchBooks(keyword: keyword, page: paging.nextPage, size: 100)
+            if searchRequestID == requestID {
+                books += result.items; paging.update(from: result.pagination)
+            }
+        } catch {
+            if searchRequestID == requestID { errorMessage = error.localizedDescription }
+        }
+        if searchRequestID == requestID { isLoading = false }
     }
 }
 

@@ -10,8 +10,6 @@ struct SignUpAccountInfo {
     var passwordConfirm: String = ""
     var isAgreedToPrivacyPolicy: Bool = false
     var isMarathonLinked: Bool = false
-    var marathonId: String = ""
-    var marathonPassword: String = ""
 }
 
 struct SignUpStep1View: View {

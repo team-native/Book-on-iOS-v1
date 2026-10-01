@@ -8,7 +8,10 @@ public enum PushNotificationRoute: Sendable {
 
     public init?(userInfo: [AnyHashable: Any]) {
         guard let type = userInfo["type"] as? String else { return nil }
+        self.init(type: type)
+    }
 
+    public init?(type: String) {
         switch type {
         case "loan_due":
             self = .loanHistory
