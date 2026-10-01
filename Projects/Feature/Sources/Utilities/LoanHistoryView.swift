@@ -100,7 +100,7 @@ public struct LoanHistoryView: View {
                     ? (viewModel.extendingLoanId == loan.loanId ? "연장 중" : "연장하기")
                     : dDayText(loan.dDay),
                 scale: scale,
-                action: { Task { await viewModel.extend(loan) } }
+                action: loan.extensionAvailable ? { Task { await viewModel.extend(loan) } } : nil
             )
         }
     }
@@ -114,7 +114,7 @@ public struct LoanHistoryView: View {
                 badge: statusTitle(loan.status),
                 isCompleted: loan.status == "RETURNED",
                 scale: scale,
-                action: {}
+                action: nil
             )
         }
     }
