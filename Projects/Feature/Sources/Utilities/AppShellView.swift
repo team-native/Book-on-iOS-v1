@@ -85,11 +85,13 @@ public struct AppShellView: View {
         .fullScreenCover(item: $destination, onDismiss: restorePendingDestination) { destination in
             switch destination {
             case .search:
-                SearchView(
-                    onShowBookDetail: showBookDetail,
-                    showsDismissButton: true,
-                    onDismiss: dismissDestination
-                )
+                BookDetailPresentation { showBookDetail in
+                    SearchView(
+                        onShowBookDetail: showBookDetail,
+                        showsDismissButton: true,
+                        onDismiss: dismissDestination
+                    )
+                }
             case .notifications:
                 NotificationInboxView(
                     onDismiss: dismissDestination,
@@ -100,7 +102,13 @@ public struct AppShellView: View {
             case .loanHistory:
                 LoanHistoryView(onBack: dismissDestination)
             case .newArrivals:
-                NewArrivalsView(showsDismissButton: true, onDismiss: dismissDestination, onShowBookDetail: showBookDetail)
+                BookDetailPresentation { showBookDetail in
+                    NewArrivalsView(
+                        showsDismissButton: true,
+                        onDismiss: dismissDestination,
+                        onShowBookDetail: showBookDetail
+                    )
+                }
             case let .bookDetail(bookId):
                 DismissableBookDetailView(
                     bookId: bookId,
@@ -177,6 +185,26 @@ private struct DismissableBookDetailView: View {
             onBack()
             dismiss()
         }
+    }
+}
+
+struct BookDetailPresentation<Content: View>: View {
+    private struct Selection: Identifiable {
+        let id: Int
+    }
+
+    @State private var selection: Selection?
+    private let content: (@escaping (Int) -> Void) -> Content
+
+    init(@ViewBuilder content: @escaping (@escaping (Int) -> Void) -> Content) {
+        self.content = content
+    }
+
+    var body: some View {
+        content { selection = Selection(id: $0) }
+            .fullScreenCover(item: $selection) { selection in
+                DismissableBookDetailView(bookId: selection.id, onBack: {})
+            }
     }
 }
 
