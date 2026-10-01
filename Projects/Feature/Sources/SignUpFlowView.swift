@@ -139,7 +139,7 @@ public struct SignUpFlowView: View {
             } catch {
                 await MainActor.run {
                     isRegistering = false
-                    registerError = error.localizedDescription
+                    registerError = UserFacingError.message(for: error)
                     verificationError = registerError
                 }
             }
@@ -177,7 +177,7 @@ public struct SignUpFlowView: View {
             } catch {
                 await MainActor.run {
                     isVerifying = false
-                    verificationError = error.localizedDescription
+                    verificationError = UserFacingError.message(for: error)
                 }
             }
         }
@@ -199,7 +199,7 @@ public struct SignUpFlowView: View {
             } catch {
                 await MainActor.run {
                     isLinkingRead365 = false
-                    read365Error = error.localizedDescription
+                    read365Error = UserFacingError.message(for: error)
                 }
             }
         }

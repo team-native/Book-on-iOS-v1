@@ -42,13 +42,13 @@ final class LibraryViewModel: ObservableObject {
                 lastSort = sort; lastCategory = category
             }
         } catch {
-            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+            if loadRequestID == requestID { errorMessage = UserFacingError.message(for: error) }
         }
         do {
             let result = try await categoryData
             if loadRequestID == requestID { categories = result }
         } catch {
-            if loadRequestID == requestID, errorMessage == nil { errorMessage = error.localizedDescription }
+            if loadRequestID == requestID, errorMessage == nil { errorMessage = UserFacingError.message(for: error) }
         }
         if loadRequestID == requestID { isLoading = false }
     }
@@ -62,7 +62,7 @@ final class LibraryViewModel: ObservableObject {
                 books += result.items; paging.update(from: result.pagination)
             }
         } catch {
-            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+            if loadRequestID == requestID { errorMessage = UserFacingError.message(for: error) }
         }
         if loadRequestID == requestID { isLoading = false }
     }
@@ -93,7 +93,7 @@ final class SearchBooksViewModel: ObservableObject {
             books = result.items; paging.update(from: result.pagination); self.keyword = keyword
         } catch {
             guard searchRequestID == requestID else { return }
-            books = []; errorMessage = error.localizedDescription
+            books = []; errorMessage = UserFacingError.message(for: error)
         }
         if searchRequestID == requestID { isLoading = false }
     }
@@ -107,7 +107,7 @@ final class SearchBooksViewModel: ObservableObject {
                 books += result.items; paging.update(from: result.pagination)
             }
         } catch {
-            if searchRequestID == requestID { errorMessage = error.localizedDescription }
+            if searchRequestID == requestID { errorMessage = UserFacingError.message(for: error) }
         }
         if searchRequestID == requestID { isLoading = false }
     }
@@ -125,14 +125,14 @@ final class NewBooksViewModel: ObservableObject {
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let result = try await service.fetchNewBooks(); books = result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: BookSummary) async {
         guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
         do { let result = try await service.fetchNewBooks(page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
 }
@@ -151,7 +151,7 @@ final class BookDetailViewModel: ObservableObject {
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let value = try await service.fetchBookDetail(bookId: bookId); book = value; isFavorite = value.favorite }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
     func toggleFavorite() async {
@@ -160,7 +160,7 @@ final class BookDetailViewModel: ObservableObject {
         do {
             let result = isFavorite ? try await service.removeFavorite(bookId: bookId) : try await service.addFavorite(bookId: bookId)
             isFavorite = result.favorite
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = UserFacingError.message(for: error) }
         isUpdatingFavorite = false
     }
 }
@@ -177,18 +177,18 @@ final class FavoritesViewModel: ObservableObject {
         guard !isLoading else { return }
         isLoading = true; errorMessage = nil
         do { let result = try await service.fetchFavoriteBooks(); books = result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
     func loadMoreIfNeeded(currentBook: FavoriteBook) async {
         guard currentBook.id == books.last?.id, paging.hasNext, !isLoading else { return }
         isLoading = true
         do { let result = try await service.fetchFavoriteBooks(page: paging.nextPage); books += result.items; paging.update(from: result.pagination) }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
     func remove(_ book: FavoriteBook) async {
         do { _ = try await service.removeFavorite(bookId: book.bookId); books.removeAll { $0.bookId == book.bookId } }
-        catch { errorMessage = error.localizedDescription }
+        catch { errorMessage = UserFacingError.message(for: error) }
     }
 }

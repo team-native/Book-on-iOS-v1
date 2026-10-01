@@ -35,8 +35,8 @@ extension NetworkError: LocalizedError {
             default:
                 return message ?? "서버 요청에 실패했습니다."
             }
-        case let .decoding(error):
-            return "서버 응답을 처리하지 못했습니다: \(error.localizedDescription)"
+        case .decoding:
+            return "서버 응답을 처리하지 못했습니다. 잠시 후 다시 시도해주세요."
         }
     }
 }

@@ -15,7 +15,7 @@ private final class RankingViewModel: ObservableObject {
         isLoading = true; errorMessage = nil
         do {
             data = try await service.fetchReaders(year: Calendar.current.component(.year, from: Date()))
-        } catch { errorMessage = error.localizedDescription }
+        } catch { errorMessage = UserFacingError.message(for: error) }
         isLoading = false
     }
 }

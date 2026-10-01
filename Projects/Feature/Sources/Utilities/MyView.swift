@@ -88,7 +88,7 @@ private final class MarathonViewModel: ObservableObject {
             currentLoans = await currentLoansRequest
             totalLoanCount = await loanHistoryRequest?.pagination.totalCount ?? 0
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
         isLoading = false
     }
@@ -105,7 +105,7 @@ private final class MarathonViewModel: ObservableObject {
             isLinkingRead365 = false
             return true
         } catch {
-            read365LinkError = error.localizedDescription
+            read365LinkError = UserFacingError.message(for: error)
             isLinkingRead365 = false
             return false
         }
@@ -133,7 +133,7 @@ private final class MarathonViewModel: ObservableObject {
             isUpdatingProfileImage = false
             return true
         } catch {
-            profileImageError = error.localizedDescription
+            profileImageError = UserFacingError.message(for: error)
             isUpdatingProfileImage = false
             return false
         }
@@ -154,7 +154,7 @@ private final class MarathonViewModel: ObservableObject {
             isUpdatingProfileImage = false
             return true
         } catch {
-            profileImageError = error.localizedDescription
+            profileImageError = UserFacingError.message(for: error)
             isUpdatingProfileImage = false
             return false
         }

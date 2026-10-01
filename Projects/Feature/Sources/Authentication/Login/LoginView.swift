@@ -166,7 +166,7 @@ public struct LoginView: View {
                 passwordError = "아이디 또는 비밀번호가 일치하지 않아요"
             } catch {
                 isLoading = false
-                passwordError = error.localizedDescription
+                passwordError = UserFacingError.message(for: error)
             }
         }
     }

@@ -285,7 +285,7 @@ public struct PasswordResetView: View {
                 errorMessage = message ?? "이메일 형식을 확인해주세요."
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = UserFacingError.message(for: error)
             }
         }
     }
@@ -312,7 +312,7 @@ public struct PasswordResetView: View {
                 errorMessage = message ?? "새 비밀번호를 다시 확인해주세요."
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = UserFacingError.message(for: error)
             }
         }
     }
