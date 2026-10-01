@@ -51,13 +51,16 @@ private final class NotificationInboxViewModel: ObservableObject {
 public struct NotificationInboxView: View {
     @StateObject private var viewModel: NotificationInboxViewModel
     private let onDismiss: () -> Void
+    private let onSelectRoute: (PushNotificationRoute) -> Void
 
     public init(
         service: NotificationHistoryService = NotificationHistoryService(),
-        onDismiss: @escaping () -> Void = {}
+        onDismiss: @escaping () -> Void = {},
+        onSelectRoute: @escaping (PushNotificationRoute) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: NotificationInboxViewModel(service: service))
         self.onDismiss = onDismiss
+        self.onSelectRoute = onSelectRoute
     }
 
     public var body: some View {
@@ -145,7 +148,12 @@ public struct NotificationInboxView: View {
                 LazyVStack(spacing: 12 * scale) {
                     ForEach(viewModel.notifications) { notification in
                         Button {
-                            Task { await viewModel.markRead(notification) }
+                            Task {
+                                await viewModel.markRead(notification)
+                                if let route = PushNotificationRoute(type: notification.type) {
+                                    onSelectRoute(route)
+                                }
+                            }
                         } label: {
                             notificationCard(notification, scale: scale)
                         }

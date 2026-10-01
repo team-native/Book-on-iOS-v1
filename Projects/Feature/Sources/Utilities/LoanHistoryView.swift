@@ -9,20 +9,28 @@ private final class LoanHistoryViewModel: ObservableObject {
     @Published var extendingLoanId: Int?
     @Published var errorMessage: String?
     private let service: LoanService
+    private var loadRequestID = UUID()
 
     init(service: LoanService) { self.service = service }
 
     func load(status: String) async {
-        guard !isLoading else { return }
+        let requestID = UUID()
+        loadRequestID = requestID
         isLoading = true; errorMessage = nil
+        defer {
+            if loadRequestID == requestID { isLoading = false }
+        }
         do {
             if status == "BORROWED" {
-                currentLoans = try await service.fetchCurrentLoans()
+                let result = try await service.fetchCurrentLoans()
+                if loadRequestID == requestID { currentLoans = result }
             } else {
-                history = try await service.fetchHistory(status: status).items
+                let result = try await service.fetchHistory(status: status).items
+                if loadRequestID == requestID { history = result }
             }
-        } catch { errorMessage = error.localizedDescription }
-        isLoading = false
+        } catch {
+            if loadRequestID == requestID { errorMessage = error.localizedDescription }
+        }
     }
 
     func extend(_ loan: CurrentLoan) async {

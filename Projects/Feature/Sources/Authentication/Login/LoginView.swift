@@ -129,7 +129,7 @@ public struct LoginView: View {
         UIApplication.hideKeyboard()
 
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isPasswordEmpty = password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
         if trimmedEmail.isEmpty {
             emailError = "이메일 주소를 입력해주세요"
@@ -145,7 +145,7 @@ public struct LoginView: View {
 
         emailError = nil
 
-        if trimmedPassword.isEmpty {
+        if isPasswordEmpty {
             passwordError = "비밀번호를 입력해주세요"
             return
         }
@@ -153,13 +153,14 @@ public struct LoginView: View {
         passwordError = nil
 
         let loginEmail = "\(trimmedEmail)@gsm.hs.kr"
+        let loginPassword = password
         isLoading = true
 
         Task {
             do {
-                try await loginService.login(loginId: loginEmail, password: trimmedPassword)
+                try await loginService.login(loginId: loginEmail, password: loginPassword)
                 isLoading = false
-                onLogin(loginEmail, trimmedPassword)
+                onLogin(loginEmail, loginPassword)
             } catch let NetworkError.server(statusCode, _, _, _) where statusCode == 401 {
                 isLoading = false
                 passwordError = "아이디 또는 비밀번호가 일치하지 않아요"
