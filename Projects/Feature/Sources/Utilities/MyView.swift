@@ -182,6 +182,7 @@ public struct MyView: View {
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
+    @State private var showsUsageGuide = false
     @State private var showsLogoutConfirmation = false
     @State private var showsRead365Link = false
     @State private var showsProfileImageSettings = false
@@ -249,6 +250,7 @@ public struct MyView: View {
                             if item == "알림 설정" { showsNotificationSettings = true }
                             if item == "대출 / 반납 내역" { showsLoanHistory = true }
                             if item == "즐겨찾기 목록" { showsFavorites = true }
+                            if item == "이용 안내" { showsUsageGuide = true }
                         })
                         Divider()
                     }
@@ -294,6 +296,9 @@ public struct MyView: View {
                     onShowBookDetail: showBookDetail
                 )
             }
+        }
+        .fullScreenCover(isPresented: $showsUsageGuide) {
+            UsageGuideView(onBack: { showsUsageGuide = false })
         }
         .fullScreenCover(isPresented: $showsRead365Link) {
             Read365LinkView(
