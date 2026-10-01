@@ -182,7 +182,6 @@ public struct MyView: View {
     @State private var showsNotificationSettings = false
     @State private var showsLoanHistory = false
     @State private var showsFavorites = false
-    @State private var selectedFavoriteBookId: Int?
     @State private var showsLogoutConfirmation = false
     @State private var showsRead365Link = false
     @State private var showsProfileImageSettings = false
@@ -289,19 +288,11 @@ public struct MyView: View {
             LoanHistoryView(onBack: { showsLoanHistory = false })
         }
         .fullScreenCover(isPresented: $showsFavorites) {
-            FavoritesView(
-                onBack: { showsFavorites = false },
-                onShowBookDetail: { selectedFavoriteBookId = $0 }
-            )
-            .fullScreenCover(
-                isPresented: Binding(
-                    get: { selectedFavoriteBookId != nil },
-                    set: { if !$0 { selectedFavoriteBookId = nil } }
+            BookDetailPresentation { showBookDetail in
+                FavoritesView(
+                    onBack: { showsFavorites = false },
+                    onShowBookDetail: showBookDetail
                 )
-            ) {
-                if let bookId = selectedFavoriteBookId {
-                    BookDetailView(bookId: bookId, onBack: { selectedFavoriteBookId = nil })
-                }
             }
         }
         .fullScreenCover(isPresented: $showsRead365Link) {
