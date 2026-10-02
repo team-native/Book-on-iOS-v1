@@ -26,7 +26,7 @@ FCM은 발송 계층이며 iOS 기기 전달은 APNs가 담당한다. 따라서 
 
 토큰 등록 응답은 `data.registered`, 폐기 응답은 `data.unregistered`, 읽음 처리 응답은 `data.id`와 `data.isRead`를 사용한다. 알림함 목록은 `data.notifications`와 `data.pagination`을 사용하며, 각 알림은 `id`, `type`, `title`, `body`, `isRead`, `createdAt`, `deepLink`를 포함한다.
 
-푸시 payload의 `type` 값 `loan_due`, `notice`, `new_book`은 각각 대출 내역, 공지, 신간 화면으로 연결한다. 알림함에서도 이 세 유형을 탭하면 읽음 처리 후 같은 화면으로 이동한다. `deepLink` 기반 화면 이동은 아직 구현되어 있지 않다.
+푸시 payload의 `type` 값 `loan_due`, `notice`, `new_book`은 각각 대출 내역, 공지, 도서 상세 화면으로 연결한다. `new_book`은 payload의 `bookId`를 사용하며, 알림함은 저장된 `/books/{bookId}` `deepLink`를 사용한다. 도서 ID가 없는 구형 신간 알림은 신간 목록으로 연결한다.
 
 ## Firebase 연결 시 작업
 
