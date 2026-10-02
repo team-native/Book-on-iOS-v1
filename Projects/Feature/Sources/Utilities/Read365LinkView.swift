@@ -96,10 +96,7 @@ struct Read365LinkView: View {
         }
         webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
             let cookieHeader = cookies
-                .filter { cookie in
-                    let domain = cookie.domain.lowercased()
-                    return domain.contains("read365.edunet.net") || domain == ".edunet.net"
-                }
+                .filter { Self.isRead365CookieDomain($0.domain) }
                 .map { "\($0.name)=\($0.value)" }
                 .joined(separator: "; ")
 
@@ -114,6 +111,14 @@ struct Read365LinkView: View {
                 onLink(cookieHeader)
             }
         }
+    }
+
+    private static func isRead365CookieDomain(_ cookieDomain: String) -> Bool {
+        let normalized = cookieDomain.lowercased()
+        let domain = normalized.hasPrefix(".") ? String(normalized.dropFirst()) : normalized
+        return domain == "edunet.net"
+            || domain == "read365.edunet.net"
+            || domain.hasSuffix(".read365.edunet.net")
     }
 }
 
