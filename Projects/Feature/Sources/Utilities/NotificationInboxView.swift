@@ -150,7 +150,10 @@ public struct NotificationInboxView: View {
                         Button {
                             Task {
                                 await viewModel.markRead(notification)
-                                if let route = PushNotificationRoute(type: notification.type) {
+                                if let route = PushNotificationRoute(
+                                    type: notification.type,
+                                    deepLink: notification.deepLink
+                                ) {
                                     onSelectRoute(route)
                                 }
                             }

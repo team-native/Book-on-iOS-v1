@@ -80,6 +80,8 @@ public struct AppShellView: View {
                 destination = .notices
             case .newArrivals:
                 destination = .newArrivals
+            case let .bookDetail(bookId):
+                destination = .bookDetail(bookId)
             }
         }
         .fullScreenCover(item: $destination, onDismiss: restorePendingDestination) { destination in
@@ -144,6 +146,8 @@ public struct AppShellView: View {
             pendingDestinationAfterDismissal = .notices
         case .newArrivals:
             pendingDestinationAfterDismissal = .newArrivals
+        case let .bookDetail(bookId):
+            pendingDestinationAfterDismissal = .bookDetail(bookId)
         }
         destination = nil
         previousDestination = nil
