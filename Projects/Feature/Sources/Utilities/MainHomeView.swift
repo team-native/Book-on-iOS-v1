@@ -69,7 +69,7 @@ public struct MainHomeView: View {
                         newArrivalsSection(scale: scale)
                             .padding(.top, 34 * scale)
                     }
-                    .padding(.top, 66 * scale)
+                    .padding(.top, 8 * scale)
                     .padding(.horizontal, 27 * scale)
                     .padding(.bottom, 112 * scale)
                 }
@@ -77,7 +77,6 @@ public struct MainHomeView: View {
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
-        .ignoresSafeArea()
         .task {
             await viewModel.load()
         }
