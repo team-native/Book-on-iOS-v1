@@ -42,10 +42,10 @@ public struct RankingView: View {
             let scale = geo.size.width / 392
             ZStack(alignment: .topLeading) {
                 Color.white.ignoresSafeArea()
-                Text("다독왕 랭킹").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale)).offset(x: 26 * scale, y: 69 * scale)
+                Text("다독왕 랭킹").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale)).offset(x: 26 * scale, y: 10 * scale)
                 Text("\(String(viewModel.data?.year ?? Calendar.current.component(.year, from: Date())))년 · 대출 권수 기준 · 매년 1월 1일 초기화")
                     .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 14 * scale))
-                    .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255)).offset(x: 26 * scale, y: 110 * scale)
+                    .foregroundColor(Color(red: 154/255, green: 154/255, blue: 161/255)).offset(x: 26 * scale, y: 51 * scale)
 
                 if viewModel.isLoading {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -66,12 +66,11 @@ public struct RankingView: View {
                     .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     .frame(width: geo.size.width, height: geo.size.height)
                 } else if viewModel.data != nil {
-                    podium(scale: scale).offset(x: 28 * scale, y: 166 * scale)
-                    rankingList(scale: scale).offset(x: 25 * scale, y: 406 * scale)
+                    podium(scale: scale).offset(x: 28 * scale, y: 107 * scale)
+                    rankingList(scale: scale).offset(x: 25 * scale, y: 347 * scale)
                 }
             }
         }
-        .ignoresSafeArea()
         .task { await viewModel.load() }
         .onChange(of: viewModel.data?.items.map(\.loanCount) ?? []) { _ in
             startPodiumAnimation()
