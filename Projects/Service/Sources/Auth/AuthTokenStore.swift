@@ -6,6 +6,45 @@ public enum AuthToken: String, CaseIterable, Sendable {
     case refreshToken
 }
 
+#if DEBUG && targetEnvironment(simulator)
+/// Unsigned simulator builds have no app-identifier Keychain access group.
+/// Keep their tokens only in process memory; signed builds continue using Keychain.
+private final class SimulatorTokenFallback: @unchecked Sendable {
+    static let shared = SimulatorTokenFallback()
+
+    private let lock = NSLock()
+    private var isActive = false
+    private var values: [AuthToken: String] = [:]
+
+    var shouldUse: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return isActive
+    }
+
+    func activateAndRead(_ token: AuthToken) -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        isActive = true
+        return values[token]
+    }
+
+    func activateAndSave(_ value: String, for token: AuthToken) {
+        lock.lock()
+        defer { lock.unlock() }
+        isActive = true
+        values[token] = value
+    }
+
+    func activateAndDelete(_ token: AuthToken) {
+        lock.lock()
+        defer { lock.unlock() }
+        isActive = true
+        values[token] = nil
+    }
+}
+#endif
+
 public enum AuthTokenStoreError: Error, Equatable {
     case invalidData
     case keychain(OSStatus)
@@ -35,6 +74,13 @@ public struct AuthTokenStore: Sendable {
             throw AuthTokenStoreError.invalidData
         }
 
+#if DEBUG && targetEnvironment(simulator)
+        if SimulatorTokenFallback.shared.shouldUse {
+            SimulatorTokenFallback.shared.activateAndSave(value, for: token)
+            return
+        }
+#endif
+
         let query = baseQuery(for: token)
         let attributes: [String: Any] = [
             kSecValueData as String: data,
@@ -48,6 +94,12 @@ public struct AuthTokenStore: Sendable {
         }
 
         guard updateStatus == errSecItemNotFound else {
+#if DEBUG && targetEnvironment(simulator)
+            if updateStatus == errSecMissingEntitlement {
+                SimulatorTokenFallback.shared.activateAndSave(value, for: token)
+                return
+            }
+#endif
             throw AuthTokenStoreError.keychain(updateStatus)
         }
 
@@ -56,11 +108,23 @@ public struct AuthTokenStore: Sendable {
 
         let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
+#if DEBUG && targetEnvironment(simulator)
+            if addStatus == errSecMissingEntitlement {
+                SimulatorTokenFallback.shared.activateAndSave(value, for: token)
+                return
+            }
+#endif
             throw AuthTokenStoreError.keychain(addStatus)
         }
     }
 
     public func read(_ token: AuthToken) throws -> String? {
+#if DEBUG && targetEnvironment(simulator)
+        if SimulatorTokenFallback.shared.shouldUse {
+            return SimulatorTokenFallback.shared.activateAndRead(token)
+        }
+#endif
+
         var query = baseQuery(for: token)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -73,6 +137,11 @@ public struct AuthTokenStore: Sendable {
         }
 
         guard status == errSecSuccess else {
+#if DEBUG && targetEnvironment(simulator)
+            if status == errSecMissingEntitlement {
+                return SimulatorTokenFallback.shared.activateAndRead(token)
+            }
+#endif
             throw AuthTokenStoreError.keychain(status)
         }
 
@@ -87,9 +156,22 @@ public struct AuthTokenStore: Sendable {
     }
 
     public func delete(_ token: AuthToken) throws {
+#if DEBUG && targetEnvironment(simulator)
+        if SimulatorTokenFallback.shared.shouldUse {
+            SimulatorTokenFallback.shared.activateAndDelete(token)
+            return
+        }
+#endif
+
         let status = SecItemDelete(baseQuery(for: token) as CFDictionary)
 
         guard status == errSecSuccess || status == errSecItemNotFound else {
+#if DEBUG && targetEnvironment(simulator)
+            if status == errSecMissingEntitlement {
+                SimulatorTokenFallback.shared.activateAndDelete(token)
+                return
+            }
+#endif
             throw AuthTokenStoreError.keychain(status)
         }
     }
