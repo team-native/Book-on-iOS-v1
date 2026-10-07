@@ -88,7 +88,10 @@ final class PushNotificationCoordinator: NSObject {
     }
 
     func didRegisterForRemoteNotifications(deviceToken: Data) {
-        #if canImport(FirebaseMessaging)
+        #if canImport(FirebaseCore) && canImport(FirebaseMessaging)
+        // Firebase 설정 파일이 없는 개발 환경에서는 APNs 등록만 성공할 수 있습니다.
+        // 기본 Firebase 앱이 설정되지 않은 상태에서 Messaging 인스턴스를 요청하지 않습니다.
+        guard FirebaseApp.app() != nil else { return }
         Messaging.messaging().apnsToken = deviceToken
         #endif
     }
@@ -113,7 +116,8 @@ final class PushNotificationCoordinator: NSObject {
 
     /// FCM 토큰은 로그인 전에 전달될 수 있으므로, 로그인 완료 또는 앱 복귀 시 다시 호출합니다.
     func syncDeviceTokenIfPossible() async {
-        #if canImport(FirebaseMessaging)
+        #if canImport(FirebaseCore) && canImport(FirebaseMessaging)
+        guard FirebaseApp.app() != nil else { return }
         guard let token = Messaging.messaging().fcmToken, !token.isEmpty else { return }
         await registerDeviceTokenIfNeeded(token)
         #endif
