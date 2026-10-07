@@ -1,32 +1,31 @@
 import SwiftUI
 
-/// 로그인 이후 화면 전환을 한곳에서 관리하는 앱의 메인 컨테이너입니다.
+/// 로그인 이후 화면 전환과 back stack을 한곳에서 관리하는 앱의 메인 컨테이너입니다.
 public struct AppShellView: View {
-    private enum Destination: Identifiable {
+    private enum Route: Hashable {
         case search
         case notifications
         case notices
         case loanHistory
+        case favorites
+        case usageGuide
+        case passwordReset
         case newArrivals
+        case recommendations
         case bookDetail(Int)
 
-        var id: String {
+        var usesSystemBackButton: Bool {
             switch self {
-            case .search: return "search"
-            case .notifications: return "notifications"
-            case .notices: return "notices"
-            case .loanHistory: return "loanHistory"
-            case .newArrivals: return "newArrivals"
-            case let .bookDetail(bookId): return "bookDetail-\(bookId)"
+            case .recommendations, .bookDetail:
+                return true
+            default:
+                return false
             }
         }
     }
 
     @State private var selectedTab: BottomTabBar.Item = .home
-    @State private var destination: Destination?
-    @State private var previousDestination: Destination?
-    @State private var pendingDestinationAfterDismissal: Destination?
-    @State private var showsPasswordReset = false
+    @State private var navigationPath: [Route] = []
     private let onLogout: () -> Void
 
     public init(onLogout: @escaping () -> Void = {}) {
@@ -34,19 +33,19 @@ public struct AppShellView: View {
     }
 
     public var body: some View {
-        GeometryReader { geometry in
-            let scale = geometry.size.width / 392
+        NavigationStack(path: $navigationPath) {
+            GeometryReader { geometry in
+                let scale = geometry.size.width / 392
 
-            ZStack(alignment: .bottom) {
                 Group {
                     switch selectedTab {
                     case .home:
                         MainHomeView(
                             onSelectTab: selectTab,
-                            onShowSearch: { destination = .search },
-                            onShowNotifications: { destination = .notifications },
-                            onShowNotices: { destination = .notices },
-                            onShowNewArrivals: { destination = .newArrivals },
+                            onShowSearch: { push(.search) },
+                            onShowNotifications: { push(.notifications) },
+                            onShowNotices: { push(.notices) },
+                            onShowRecommendations: { push(.recommendations) },
                             onShowBookDetail: showBookDetail
                         )
                     case .ranking:
@@ -59,67 +58,74 @@ public struct AppShellView: View {
                     case .my:
                         MyView(
                             onSelectTab: selectTab,
-                            onShowPasswordReset: { showsPasswordReset = true },
-                            onLogout: onLogout
+                            onShowPasswordReset: { push(.passwordReset) },
+                            onLogout: onLogout,
+                            onShowLoanHistory: { push(.loanHistory) },
+                            onShowFavorites: { push(.favorites) },
+                            onShowUsageGuide: { push(.usageGuide) }
                         )
                     }
                 }
-
-                BottomTabBar(selected: selectedTab, scale: scale, action: selectTab)
-                    .frame(height: 89 * scale, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    BottomTabBar(selected: selectedTab, scale: scale, action: selectTab)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 89 * scale, alignment: .top)
+                        .background(Color.white.ignoresSafeArea(edges: .bottom))
+                }
             }
+            .navigationDestination(for: Route.self) { route in
+                destinationView(for: route)
+                    .toolbar(route.usesSystemBackButton ? .visible : .hidden, for: .navigationBar)
+                    .navigationBarBackButtonHidden(!route.usesSystemBackButton)
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .background(Color.white.ignoresSafeArea())
         .onReceive(NotificationCenter.default.publisher(for: .bookOnPushNotificationRoute)) { notification in
             guard let route = notification.object as? PushNotificationRoute else { return }
+            navigationPath = [appRoute(for: route)]
+        }
+    }
 
-            switch route {
-            case .loanHistory:
-                destination = .loanHistory
-            case .notices:
-                destination = .notices
-            case .newArrivals:
-                destination = .newArrivals
-            case let .bookDetail(bookId):
-                destination = .bookDetail(bookId)
-            }
-        }
-        .fullScreenCover(item: $destination, onDismiss: restorePendingDestination) { destination in
-            switch destination {
-            case .search:
-                BookDetailPresentation { showBookDetail in
-                    SearchView(
-                        onShowBookDetail: showBookDetail,
-                        showsDismissButton: true,
-                        onDismiss: dismissDestination
-                    )
-                }
-            case .notifications:
-                NotificationInboxView(
-                    onDismiss: dismissDestination,
-                    onSelectRoute: showNotificationRoute
-                )
-            case .notices:
-                NoticeListView(onBack: dismissDestination)
-            case .loanHistory:
-                LoanHistoryView(onBack: dismissDestination)
-            case .newArrivals:
-                BookDetailPresentation { showBookDetail in
-                    NewArrivalsView(
-                        showsDismissButton: true,
-                        onDismiss: dismissDestination,
-                        onShowBookDetail: showBookDetail
-                    )
-                }
-            case let .bookDetail(bookId):
-                DismissableBookDetailView(
-                    bookId: bookId,
-                    onBack: prepareBookDetailDismissal
-                )
-            }
-        }
-        .fullScreenCover(isPresented: $showsPasswordReset) {
-            DismissablePasswordResetView()
+    @ViewBuilder
+    private func destinationView(for route: Route) -> some View {
+        switch route {
+        case .search:
+            SearchView(
+                onShowBookDetail: showBookDetail,
+                showsDismissButton: true,
+                onDismiss: popRoute
+            )
+        case .notifications:
+            NotificationInboxView(
+                onDismiss: popRoute,
+                onSelectRoute: { navigationPath.append(appRoute(for: $0)) }
+            )
+        case .notices:
+            NoticeListView(onBack: popRoute)
+        case .loanHistory:
+            LoanHistoryView(onBack: popRoute)
+        case .favorites:
+            FavoritesView(onBack: popRoute, onShowBookDetail: showBookDetail)
+        case .usageGuide:
+            UsageGuideView(onBack: popRoute)
+        case .passwordReset:
+            PasswordResetView(
+                onBack: popRoute,
+                onCompleted: popRoute,
+                exitsToPreviousScreenOnBack: true
+            )
+        case .newArrivals:
+            NewArrivalsView(
+                showsDismissButton: true,
+                onDismiss: popRoute,
+                onShowBookDetail: showBookDetail
+            )
+        case .recommendations:
+            TodayRecommendationsView(onShowBookDetail: showBookDetail)
+        case let .bookDetail(bookId):
+            BookDetailView(bookId: bookId, showsBackButton: false)
         }
     }
 
@@ -128,89 +134,30 @@ public struct AppShellView: View {
         selectedTab = item
     }
 
-    private func dismissDestination() {
-        destination = nil
-        previousDestination = nil
+    private func push(_ route: Route) {
+        navigationPath.append(route)
+    }
+
+    private func popRoute() {
+        guard !navigationPath.isEmpty else { return }
+        navigationPath.removeLast()
     }
 
     private func showBookDetail(_ bookId: Int) {
-        previousDestination = destination
-        destination = .bookDetail(bookId)
+        push(.bookDetail(bookId))
     }
 
-    private func showNotificationRoute(_ route: PushNotificationRoute) {
-        previousDestination = nil
-
+    private func appRoute(for route: PushNotificationRoute) -> Route {
         switch route {
         case .loanHistory:
-            pendingDestinationAfterDismissal = .loanHistory
+            return .loanHistory
         case .notices:
-            pendingDestinationAfterDismissal = .notices
+            return .notices
         case .newArrivals:
-            pendingDestinationAfterDismissal = .newArrivals
+            return .newArrivals
         case let .bookDetail(bookId):
-            pendingDestinationAfterDismissal = .bookDetail(bookId)
-            previousDestination = .notifications
+            return .bookDetail(bookId)
         }
-        destination = nil
-    }
-
-    private func prepareBookDetailDismissal() {
-        pendingDestinationAfterDismissal = previousDestination
-        previousDestination = nil
-    }
-
-    private func restorePendingDestination() {
-        guard let pendingDestinationAfterDismissal else { return }
-
-        self.pendingDestinationAfterDismissal = nil
-        destination = pendingDestinationAfterDismissal
-    }
-}
-
-private struct DismissablePasswordResetView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        PasswordResetView(
-            onBack: { dismiss() },
-            onCompleted: { dismiss() },
-            exitsToPreviousScreenOnBack: true
-        )
-    }
-}
-
-private struct DismissableBookDetailView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    let bookId: Int
-    let onBack: () -> Void
-
-    var body: some View {
-        BookDetailView(bookId: bookId) {
-            onBack()
-            dismiss()
-        }
-    }
-}
-
-struct BookDetailPresentation<Content: View>: View {
-    private struct Selection: Identifiable {
-        let id: Int
-    }
-
-    @State private var selection: Selection?
-    private let content: (@escaping (Int) -> Void) -> Content
-
-    init(@ViewBuilder content: @escaping (@escaping (Int) -> Void) -> Content) {
-        self.content = content
-    }
-
-    var body: some View {
-        content { selection = Selection(id: $0) }
-            .fullScreenCover(item: $selection) { selection in
-                DismissableBookDetailView(bookId: selection.id, onBack: {})
-            }
     }
 }
 

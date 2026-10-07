@@ -5,10 +5,17 @@ public struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: BookDetailViewModel
     private let onBack: (() -> Void)?
+    private let showsBackButton: Bool
 
-    public init(bookId: Int, booksService: BooksService = BooksService(), onBack: (() -> Void)? = nil) {
+    public init(
+        bookId: Int,
+        booksService: BooksService = BooksService(),
+        onBack: (() -> Void)? = nil,
+        showsBackButton: Bool = true
+    ) {
         _viewModel = StateObject(wrappedValue: BookDetailViewModel(bookId: bookId, service: booksService))
         self.onBack = onBack
+        self.showsBackButton = showsBackButton
     }
 
     public var body: some View {
@@ -28,11 +35,16 @@ public struct BookDetailView: View {
                     errorView(scale: scale)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                AppBackButton(scale: scale, action: goBack)
-                    .padding(.leading, 23 * scale)
-                    .padding(.top, 12 * scale)
+                if showsBackButton {
+                    AppBackButton(scale: scale, action: goBack)
+                        .padding(.leading, 23 * scale)
+                        .padding(.top, 12 * scale)
+                }
             }
-        }.task { await viewModel.load() }
+        }
+        .toolbar(showsBackButton ? .hidden : .visible, for: .navigationBar)
+        .navigationBarBackButtonHidden(showsBackButton)
+        .task { await viewModel.load() }
     }
 
     private func goBack() {

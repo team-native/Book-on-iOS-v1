@@ -35,7 +35,7 @@ public struct LibraryView: View {
                     }
                     .padding(.horizontal, 23 * scale)
                     .padding(.top, 8 * scale)
-                    .padding(.bottom, 110 * scale)
+                    .padding(.bottom, 16 * scale)
                 }
             }
         }

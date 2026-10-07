@@ -8,7 +8,7 @@ public struct MainHomeView: View {
     private let onShowSearch: () -> Void
     private let onShowNotifications: () -> Void
     private let onShowNotices: () -> Void
-    private let onShowNewArrivals: () -> Void
+    private let onShowRecommendations: () -> Void
     private let onShowBookDetail: (Int) -> Void
 
     public init(
@@ -19,7 +19,7 @@ public struct MainHomeView: View {
         onShowSearch: @escaping () -> Void = {},
         onShowNotifications: @escaping () -> Void = {},
         onShowNotices: @escaping () -> Void = {},
-        onShowNewArrivals: @escaping () -> Void = {},
+        onShowRecommendations: @escaping () -> Void = {},
         onShowBookDetail: @escaping (Int) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(service: homeService, booksService: booksService, meService: meService))
@@ -27,7 +27,7 @@ public struct MainHomeView: View {
         self.onShowSearch = onShowSearch
         self.onShowNotifications = onShowNotifications
         self.onShowNotices = onShowNotices
-        self.onShowNewArrivals = onShowNewArrivals
+        self.onShowRecommendations = onShowRecommendations
         self.onShowBookDetail = onShowBookDetail
     }
 
@@ -66,12 +66,12 @@ public struct MainHomeView: View {
                         recommendationSection(scale: scale)
                             .padding(.top, 40 * scale)
 
-                        newArrivalsSection(scale: scale)
+                        popularSection(scale: scale)
                             .padding(.top, 34 * scale)
                     }
                     .padding(.top, 8 * scale)
                     .padding(.horizontal, 27 * scale)
-                    .padding(.bottom, 112 * scale)
+                    .padding(.bottom, 16 * scale)
                 }
 
             }
@@ -191,45 +191,38 @@ public struct MainHomeView: View {
     private func recommendationSection(scale: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8 * scale) {
-                Text("내 관심 분야 추천")
+                Text("AI 추천")
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 20 * scale))
                 HStack(spacing: 4 * scale) {
-                    Image(systemName: "slider.horizontal.3").font(.system(size: 9 * scale))
-                    Text("취향 맞춤")
+                    Image(systemName: "sparkles").font(.system(size: 9 * scale))
+                    Text("AI")
                 }
                 .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale))
                 .foregroundColor(.white)
-                .padding(.horizontal, 8 * scale)
-                .frame(height: 22 * scale)
+                .padding(.horizontal, 10 * scale)
+                .frame(height: 24 * scale)
                 .background(LinearGradient(colors: [Color(red: 147/255, green: 210/255, blue: 52/255), Color(red: 116/255, green: 163/255, blue: 46/255)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
+                Spacer()
+                Button("더보기", action: onShowRecommendations)
+                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                    .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
-            Text("관심 분야를 고르면 그 분야에서 많이 찾는 책을 보여드려요.")
+            Text("\(viewModel.user?.name ?? "회원")님의 대출 이력을 분석해 골랐어요")
                 .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                 .foregroundColor(Color(red: 154 / 255, green: 154 / 255, blue: 161 / 255))
                 .padding(.top, 4 * scale)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8 * scale) {
-                    recommendationCategoryChip(title: "전체", code: nil, scale: scale)
-                    ForEach(viewModel.recommendationCategories) { category in
-                        recommendationCategoryChip(title: category.name, code: category.code, scale: scale)
-                    }
-                }
-                .padding(.vertical, 2 * scale)
-            }
-            .padding(.top, 12 * scale)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 24 * scale) {
-                    if viewModel.isLoading || viewModel.isLoadingRecommendations,
+                LazyHStack(alignment: .top, spacing: 16 * scale) {
+                    if viewModel.isLoading,
                        viewModel.displayedRecommendations.isEmpty {
                         ProgressView().frame(width: 338 * scale, height: 220 * scale)
                     } else if viewModel.displayedRecommendations.isEmpty {
                         Text(
                             viewModel.dlsUnavailable
                                 ? "학교 도서관 연결이 원활하지 않아요.\n잠시 후 다시 시도해주세요."
-                                : (viewModel.recommendationsFailed ? "추천 도서를 불러오지 못했어요." : "선택한 분야의 추천 도서가 아직 없어요.")
+                                : (viewModel.recommendationsFailed ? "추천 도서를 불러오지 못했어요." : "아직 추천 도서가 없어요.")
                         )
                             .multilineTextAlignment(.center)
                             .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
@@ -250,25 +243,7 @@ public struct MainHomeView: View {
         .frame(width: 338 * scale, alignment: .leading)
     }
 
-    private func recommendationCategoryChip(title: String, code: String?, scale: CGFloat) -> some View {
-        let isSelected = viewModel.selectedRecommendationCategoryCode == code
-        return Button {
-            Task { await viewModel.selectRecommendationCategory(code: code) }
-        } label: {
-            Text(title)
-                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 11 * scale))
-                .foregroundColor(isSelected ? .white : FeatureAsset.Color.textDescription.swiftUIColor)
-                .padding(.horizontal, 13 * scale)
-                .frame(height: 32 * scale)
-                .background(isSelected ? FeatureAsset.Color.buttonColor.swiftUIColor : Color.white)
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(isSelected ? Color.clear : Color.black.opacity(0.07), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private func bookSlot(book: BookSummary, scale: CGFloat) -> some View {
+    private func bookSlot(book: BookRecommendation, scale: CGFloat) -> some View {
         Button(action: { onShowBookDetail(book.bookId) }) {
             VStack(alignment: .leading, spacing: 0) {
                 AsyncImage(url: book.coverImageUrl.flatMap(URL.init(string:))) { image in
@@ -288,8 +263,12 @@ public struct MainHomeView: View {
                 Text(book.author)
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(Color(red: 152/255, green: 152/255, blue: 159/255))
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .frame(width: 118 * scale, alignment: .leading)
                     .padding(.top, 4 * scale)
             }
+            .frame(width: 118 * scale, alignment: .leading)
         }
         .buttonStyle(.plain)
     }
@@ -311,37 +290,32 @@ public struct MainHomeView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
     }
 
-    private func newArrivalsSection(scale: CGFloat) -> some View {
+    private func popularSection(scale: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 14 * scale) {
             HStack {
-                VStack(alignment: .leading, spacing: 4 * scale) {
-                    Text("새로 들어왔어요")
-                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale))
-                    Text("최근 등록된 도서")
-                        .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 11 * scale))
-                        .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
-                }
+                Text("우리 학교 인기 책")
+                    .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 14 * scale))
                 Spacer()
-                Button("모두 보기", action: onShowNewArrivals)
+                Button("더보기") { onSelectTab(.library) }
                     .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                     .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 16 * scale) {
-                    if viewModel.isLoading && viewModel.newArrivalBooks.isEmpty {
+                    if viewModel.isLoading && viewModel.displayedPopularBooks.isEmpty {
                         ProgressView().frame(width: 338 * scale, height: 76 * scale)
-                    } else if viewModel.newArrivalBooks.isEmpty {
+                    } else if viewModel.displayedPopularBooks.isEmpty {
                         Text(
                             viewModel.dlsUnavailable
                                 ? "학교 도서관 연결이 원활하지 않아요."
-                                : (viewModel.newArrivalsFailed ? "신간 도서를 불러오지 못했어요." : "최근 등록된 도서가 없어요.")
+                                : (viewModel.popularBooksFailed ? "인기 도서를 불러오지 못했어요." : "아직 인기 도서가 없어요.")
                         )
                             .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12 * scale))
                             .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                             .frame(width: 338 * scale, height: 76 * scale)
                     } else {
-                        ForEach(viewModel.newArrivalBooks) { book in newArrivalBook(book: book, scale: scale) }
+                        ForEach(viewModel.displayedPopularBooks) { book in popularBook(book: book, scale: scale) }
                     }
                 }
                 .padding(.leading, 27 * scale)
@@ -353,7 +327,7 @@ public struct MainHomeView: View {
         .frame(width: 338 * scale)
     }
 
-    private func newArrivalBook(book: BookSummary, scale: CGFloat) -> some View {
+    private func popularBook(book: BookSummary, scale: CGFloat) -> some View {
         Button(action: { onShowBookDetail(book.bookId) }) {
             HStack(spacing: 8 * scale) {
                 BookCoverView(urlString: book.coverImageUrl, width: 50 * scale, height: 64 * scale, cornerRadius: 10 * scale)
@@ -361,14 +335,11 @@ public struct MainHomeView: View {
                     Text(book.title)
                         .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
                         .foregroundColor(.black)
-                    Text(book.author)
+                    Text("\(book.author) · 재고 \(book.availableQuantity)권")
                         .font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 10 * scale))
                         .foregroundColor(Color(red: 176/255, green: 176/255, blue: 181/255))
                 }
                 Spacer(minLength: 0)
-                Text("신간")
-                    .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 9 * scale))
-                    .foregroundColor(FeatureAsset.Color.buttonColor.swiftUIColor)
             }
             .padding(6 * scale)
             .frame(width: 206 * scale, height: 76 * scale)
