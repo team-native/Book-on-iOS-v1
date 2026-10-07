@@ -20,22 +20,23 @@ public struct SearchView: View {
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
+            let contentHeight = max(0, geo.size.height - 148 * scale)
             ZStack(alignment: .topLeading) {
-                Color.white
-                Text("검색").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale)).offset(x: 23 * scale, y: 62 * scale)
-                if showsDismissButton { AppBackButton(scale: scale, action: onDismiss).offset(x: 330 * scale, y: 62 * scale) }
+                Text("검색").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 28 * scale)).offset(x: 23 * scale, y: 4 * scale)
+                if showsDismissButton { AppBackButton(scale: scale, action: onDismiss).offset(x: 330 * scale, y: 4 * scale) }
                 BookSearchField(text: $query, width: 344, scale: scale, onSubmit: performSearch, onClear: query.isEmpty ? nil : { query = ""; didSearch = false }, onSearch: performSearch)
-                    .offset(x: 24 * scale, y: 123 * scale)
-                content(scale: scale).offset(x: 24 * scale, y: 190 * scale)
+                    .offset(x: 24 * scale, y: 65 * scale)
+                content(scale: scale, availableHeight: contentHeight).offset(x: 24 * scale, y: 132 * scale)
             }
-        }.ignoresSafeArea()
+        }
+        .background(Color.white.ignoresSafeArea())
         .task { if didSearch { await viewModel.search(query) } }
         .alert("검색할 자료명을 입력해주세요.", isPresented: $showsEmptyQueryAlert) {
             Button("확인", role: .cancel) {}
         }
     }
 
-    @ViewBuilder private func content(scale: CGFloat) -> some View {
+    @ViewBuilder private func content(scale: CGFloat, availableHeight: CGFloat) -> some View {
         if viewModel.isLoading && viewModel.books.isEmpty { ProgressView().frame(width: 344 * scale).padding(.top, 150 * scale) }
         else if let error = viewModel.errorMessage { VStack(spacing: 12) { Text(error); Button("재시도", action: performSearch) }.frame(width: 344 * scale).padding(.top, 120 * scale) }
         else if didSearch && !viewModel.books.isEmpty {
@@ -47,7 +48,7 @@ public struct SearchView: View {
                             .onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
                     }
                 }.padding(.bottom, 40 * scale)
-            }.frame(width: 344 * scale, height: 650 * scale)
+            }.frame(width: 344 * scale, height: availableHeight)
         } else { emptyState(scale: scale) }
     }
 

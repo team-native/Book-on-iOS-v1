@@ -14,17 +14,19 @@ public struct FavoritesView: View {
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / 392
+            let contentHeight = max(0, geo.size.height - 112 * scale)
             ZStack(alignment: .topLeading) {
-                Color.white
-                AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 64 * scale)
-                Text("즐겨찾기").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).frame(width: geo.size.width).offset(y: 74 * scale)
-                Text("관심 도서 \(viewModel.books.count)권 · 대출 가능해지면 알려드려요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).offset(x: 24 * scale, y: 116 * scale)
-                content(scale: scale).offset(x: 24 * scale, y: 158 * scale)
+                AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 6 * scale)
+                Text("즐겨찾기").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).frame(width: geo.size.width).offset(y: 16 * scale)
+                Text("관심 도서 \(viewModel.books.count)권 · 대출 가능해지면 알려드려요").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).offset(x: 24 * scale, y: 58 * scale)
+                content(scale: scale, availableHeight: contentHeight).offset(x: 24 * scale, y: 100 * scale)
             }
-        }.ignoresSafeArea().task { await viewModel.load() }
+        }
+        .background(Color.white.ignoresSafeArea())
+        .task { await viewModel.load() }
     }
 
-    @ViewBuilder private func content(scale: CGFloat) -> some View {
+    @ViewBuilder private func content(scale: CGFloat, availableHeight: CGFloat) -> some View {
         if viewModel.isLoading && viewModel.books.isEmpty { ProgressView().frame(width: 344 * scale).padding(.top, 120 * scale) }
         else if let error = viewModel.errorMessage, viewModel.books.isEmpty { VStack { Text(error); Button("재시도") { Task { await viewModel.load() } } }.frame(width: 344 * scale).padding(.top, 100 * scale) }
         else if viewModel.books.isEmpty { Text("관심 도서가 없어요").foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).frame(width: 344 * scale).padding(.top, 120 * scale) }
@@ -36,7 +38,7 @@ public struct FavoritesView: View {
                             .onAppear { Task { await viewModel.loadMoreIfNeeded(currentBook: book) } }
                     }
                 }.padding(.bottom, 40 * scale)
-            }.frame(width: 344 * scale, height: 680 * scale)
+            }.frame(width: 344 * scale, height: availableHeight)
         }
     }
 }

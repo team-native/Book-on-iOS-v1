@@ -49,18 +49,18 @@ public struct NoticeListView: View {
                 Color.white.ignoresSafeArea()
 
                 AppBackButton(scale: scale, action: onBack)
-                    .offset(x: 25 * scale, y: 64 * scale)
+                    .offset(x: 25 * scale, y: 6 * scale)
 
                 Text("도서부 공지")
                     .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 18 * scale))
-                    .offset(x: 151 * scale, y: 74 * scale)
+                    .offset(x: 151 * scale, y: 16 * scale)
 
                 content(scale: scale)
-                    .frame(width: 344 * scale, height: geometry.size.height - 145 * scale, alignment: .top)
-                    .offset(x: 24 * scale, y: 133 * scale)
+                    .frame(width: 344 * scale, height: max(0, geometry.size.height - 87 * scale), alignment: .top)
+                    .offset(x: 24 * scale, y: 75 * scale)
             }
         }
-        .ignoresSafeArea()
+        .background(Color.white.ignoresSafeArea())
         .task { await viewModel.load() }
     }
 

@@ -19,9 +19,11 @@ public struct NewArrivalsView: View {
                     if showsDismissButton { AppBackButton(scale: scale, action: onDismiss) }
                     Text("최근 새로 들어온 도서").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 20 * scale))
                     content(scale: scale)
-                }.padding(.horizontal, 32 * scale).padding(.top, 56 * scale)
+                }.padding(.horizontal, 32 * scale).padding(.top, 4 * scale)
             }
-        }.background(Color.white).ignoresSafeArea().task { await viewModel.load() }
+        }
+        .background(Color.white.ignoresSafeArea())
+        .task { await viewModel.load() }
     }
 
     @ViewBuilder private func content(scale: CGFloat) -> some View {
