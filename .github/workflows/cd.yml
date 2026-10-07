@@ -12,11 +12,20 @@ concurrency:
 jobs:
   deploy:
     name: Deploy to TestFlight
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify upload toolchain
+        run: |
+          set -euo pipefail
+          XCODE_VERSION=$(xcodebuild -version | awk '/^Xcode / { print $2; exit }')
+          IOS_SDK_VERSION=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "Using Xcode $XCODE_VERSION with iOS SDK $IOS_SDK_VERSION"
+          test "${XCODE_VERSION%%.*}" -ge 26
+          test "${IOS_SDK_VERSION%%.*}" -ge 26
 
       - name: Setup mise
         uses: jdx/mise-action@v2
