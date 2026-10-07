@@ -21,7 +21,9 @@ jobs:
       - name: Verify upload toolchain
         run: |
           set -euo pipefail
-          XCODE_VERSION=$(xcodebuild -version | awk '/^Xcode / { print $2; exit }')
+          XCODE_VERSION_OUTPUT=$(xcodebuild -version)
+          XCODE_VERSION=${XCODE_VERSION_OUTPUT#Xcode }
+          XCODE_VERSION=${XCODE_VERSION%%$'\n'*}
           IOS_SDK_VERSION=$(xcrun --sdk iphoneos --show-sdk-version)
           echo "Using Xcode $XCODE_VERSION with iOS SDK $IOS_SDK_VERSION"
           test "${XCODE_VERSION%%.*}" -ge 26
