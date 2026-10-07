@@ -27,7 +27,10 @@ public struct HomeService: Sendable {
     }
 
     public func fetchTodayRecommendations() async throws -> TodayRecommendationsData {
-        let endpoint = APIEndpoint(path: "/books/recommendations/today")
+        let endpoint = APIEndpoint(
+            path: "/books/recommendations/today",
+            usesAuthorizationIfAvailable: true
+        )
         return try await client.send(endpoint, as: TodayRecommendationsData.self).data
     }
 }

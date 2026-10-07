@@ -180,9 +180,6 @@ public struct MyView: View {
     @Environment(\.scenePhase) private var scenePhase
     private let menuItems = ["비밀번호 변경", "대출 / 반납 내역", "즐겨찾기 목록", "알림 설정", "이용 안내"]
     @State private var showsNotificationSettings = false
-    @State private var showsLoanHistory = false
-    @State private var showsFavorites = false
-    @State private var showsUsageGuide = false
     @State private var showsLogoutConfirmation = false
     @State private var showsRead365Link = false
     @State private var showsProfileImageSettings = false
@@ -190,6 +187,9 @@ public struct MyView: View {
     private let onSelectTab: (BottomTabBar.Item) -> Void
     private let onShowPasswordReset: () -> Void
     private let onLogout: () -> Void
+    private let onShowLoanHistory: () -> Void
+    private let onShowFavorites: () -> Void
+    private let onShowUsageGuide: () -> Void
 
     public init(
         marathonService: MarathonService = MarathonService(),
@@ -198,7 +198,10 @@ public struct MyView: View {
         read365Service: Read365Service = Read365Service(),
         onSelectTab: @escaping (BottomTabBar.Item) -> Void = { _ in },
         onShowPasswordReset: @escaping () -> Void = {},
-        onLogout: @escaping () -> Void = {}
+        onLogout: @escaping () -> Void = {},
+        onShowLoanHistory: @escaping () -> Void = {},
+        onShowFavorites: @escaping () -> Void = {},
+        onShowUsageGuide: @escaping () -> Void = {}
     ) {
         _marathonViewModel = StateObject(
             wrappedValue: MarathonViewModel(
@@ -211,6 +214,9 @@ public struct MyView: View {
         self.onSelectTab = onSelectTab
         self.onShowPasswordReset = onShowPasswordReset
         self.onLogout = onLogout
+        self.onShowLoanHistory = onShowLoanHistory
+        self.onShowFavorites = onShowFavorites
+        self.onShowUsageGuide = onShowUsageGuide
     }
     public var body: some View {
         GeometryReader { geo in
@@ -264,9 +270,9 @@ public struct MyView: View {
                             NavigationMenuRow(title: item, scale: scale, action: {
                                 if item == "비밀번호 변경" { onShowPasswordReset() }
                                 if item == "알림 설정" { showsNotificationSettings = true }
-                                if item == "대출 / 반납 내역" { showsLoanHistory = true }
-                                if item == "즐겨찾기 목록" { showsFavorites = true }
-                                if item == "이용 안내" { showsUsageGuide = true }
+                                if item == "대출 / 반납 내역" { onShowLoanHistory() }
+                                if item == "즐겨찾기 목록" { onShowFavorites() }
+                                if item == "이용 안내" { onShowUsageGuide() }
                             })
                             Divider()
                         }
@@ -282,7 +288,7 @@ public struct MyView: View {
                 }
                 .padding(.horizontal, Layout.contentLeading * scale)
                 .padding(.top, 15 * scale)
-                .padding(.bottom, 112 * scale)
+                .padding(.bottom, 16 * scale)
                 .frame(width: geo.size.width, alignment: .topLeading)
             }
             .background(Color.white.ignoresSafeArea())
@@ -305,20 +311,6 @@ public struct MyView: View {
                     await marathonViewModel.deleteProfileImage()
                 }
             )
-        }
-        .fullScreenCover(isPresented: $showsLoanHistory) {
-            LoanHistoryView(onBack: { showsLoanHistory = false })
-        }
-        .fullScreenCover(isPresented: $showsFavorites) {
-            BookDetailPresentation { showBookDetail in
-                FavoritesView(
-                    onBack: { showsFavorites = false },
-                    onShowBookDetail: showBookDetail
-                )
-            }
-        }
-        .fullScreenCover(isPresented: $showsUsageGuide) {
-            UsageGuideView(onBack: { showsUsageGuide = false })
         }
         .fullScreenCover(isPresented: $showsRead365Link) {
             Read365LinkView(
