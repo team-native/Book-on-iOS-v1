@@ -60,13 +60,13 @@ public struct LoanHistoryView: View {
             let scale = geo.size.width / 392
             ZStack(alignment: .topLeading) {
                 Color.white.ignoresSafeArea()
-                AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 64 * scale)
-                Text("대출 / 반납 내역").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 146 * scale, y: 74 * scale)
+                AppBackButton(scale: scale, action: onBack).offset(x: 25 * scale, y: 6 * scale)
+                Text("대출 / 반납 내역").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 146 * scale, y: 16 * scale)
                 HStack(spacing: 10 * scale) {
                     filterChip("대출 중 \(viewModel.currentLoans.count)", .borrowing, scale)
                     filterChip("반납 완료", .returned, scale)
                     filterChip("전체", .all, scale)
-                }.offset(x: 23 * scale, y: 118 * scale)
+                }.offset(x: 23 * scale, y: 60 * scale)
 
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16 * scale) {
@@ -75,10 +75,10 @@ public struct LoanHistoryView: View {
                         else if filter == .borrowing { currentContent(scale: scale) }
                         else { historyContent(scale: scale) }
                     }.padding(.bottom, 30)
-                }.frame(width: 344 * scale, height: geo.size.height - 190 * scale).offset(x: 24 * scale, y: 174 * scale)
+                }.frame(width: 344 * scale, height: max(0, geo.size.height - 132 * scale)).offset(x: 24 * scale, y: 116 * scale)
             }
         }
-        .ignoresSafeArea()
+        .background(Color.white.ignoresSafeArea())
         .task { await viewModel.load(status: filter.rawValue) }
     }
 

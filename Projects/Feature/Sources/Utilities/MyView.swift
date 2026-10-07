@@ -215,58 +215,78 @@ public struct MyView: View {
     public var body: some View {
         GeometryReader { geo in
             let scale = geo.size.width / Layout.designWidth
-            ZStack(alignment: .topLeading) {
-                Color.white
-                Text("내 서재").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale)).offset(x: 173 * scale, y: 74 * scale)
-                HStack(spacing: 16 * scale) {
-                    ZStack(alignment: .bottomTrailing) {
-                        ProfileAvatar(
-                            size: 64,
-                            scale: scale,
-                            imagePath: marathonViewModel.me?.user.profileImageUrl,
-                            imageData: marathonViewModel.localProfileImageData
-                        )
-                        Button(action: { showsProfileImageSettings = true }) {
-                            Image(systemName: "pencil").font(.system(size: 10 * scale, weight: .bold)).foregroundColor(.black).frame(width: 24 * scale, height: 24 * scale).background(Color.white).clipShape(Circle()).shadow(radius: 3 * scale)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("내 서재")
+                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 16 * scale))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 20 * scale)
+                        .padding(.bottom, 14 * scale)
+
+                    HStack(spacing: 16 * scale) {
+                        ZStack(alignment: .bottomTrailing) {
+                            ProfileAvatar(
+                                size: 64,
+                                scale: scale,
+                                imagePath: marathonViewModel.me?.user.profileImageUrl,
+                                imageData: marathonViewModel.localProfileImageData
+                            )
+                            Button(action: { showsProfileImageSettings = true }) {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 10 * scale, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .frame(width: 24 * scale, height: 24 * scale)
+                                    .background(Color.white)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 3 * scale)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                        VStack(alignment: .leading, spacing: 5 * scale) {
+                            Text("\(marathonViewModel.me?.user.name ?? marathonViewModel.myInfo?.profile.name ?? "사용자") 님")
+                                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
+                            Text(profileDetail)
+                                .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
+                                .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
+                        }
                     }
-                    VStack(alignment: .leading, spacing: 5 * scale) {
-                        Text("\(marathonViewModel.me?.user.name ?? marathonViewModel.myInfo?.profile.name ?? "사용자") 님").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 22 * scale))
-                        Text(profileDetail)
-                            .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale))
-                            .foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
+                    .frame(height: 64 * scale)
+
+                    ProfileStatsCard(stats: profileStats, scale: scale)
+                        .frame(width: Layout.contentWidth * scale)
+                        .padding(.top, 16 * scale)
+
+                    marathonCard(scale: scale)
+                        .padding(.top, 24 * scale)
+
+                    VStack(spacing: 0) {
+                        ForEach(menuItems, id: \.self) { item in
+                            NavigationMenuRow(title: item, scale: scale, action: {
+                                if item == "비밀번호 변경" { onShowPasswordReset() }
+                                if item == "알림 설정" { showsNotificationSettings = true }
+                                if item == "대출 / 반납 내역" { showsLoanHistory = true }
+                                if item == "즐겨찾기 목록" { showsFavorites = true }
+                                if item == "이용 안내" { showsUsageGuide = true }
+                            })
+                            Divider()
+                        }
+                        NavigationMenuRow(
+                            title: "로그아웃",
+                            isDestructive: true,
+                            scale: scale,
+                            action: { showsLogoutConfirmation = true }
+                        )
                     }
-                }.offset(x: 23 * scale, y: 108 * scale)
-                ProfileStatsCard(stats: profileStats, scale: scale)
                     .frame(width: Layout.contentWidth * scale)
-                    .offset(x: Layout.contentLeading * scale, y: 188 * scale)
-                marathonCard(scale: scale)
-                    .offset(x: Layout.contentLeading * scale, y: 288 * scale)
-                VStack(spacing: 0) {
-                    ForEach(menuItems, id: \.self) { item in
-                        NavigationMenuRow(title: item, scale: scale, action: {
-                            if item == "비밀번호 변경" { onShowPasswordReset() }
-                            if item == "알림 설정" { showsNotificationSettings = true }
-                            if item == "대출 / 반납 내역" { showsLoanHistory = true }
-                            if item == "즐겨찾기 목록" { showsFavorites = true }
-                            if item == "이용 안내" { showsUsageGuide = true }
-                        })
-                        Divider()
-                    }
-                    NavigationMenuRow(
-                        title: "로그아웃",
-                        isDestructive: true,
-                        scale: scale,
-                        action: { showsLogoutConfirmation = true }
-                    )
+                    .padding(.top, 12 * scale)
                 }
-                .frame(width: Layout.contentWidth * scale)
-                .offset(x: Layout.contentLeading * scale, y: 426 * scale)
-                Text("© 2026 Native").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 10 * scale)).foregroundColor(Color(red: 199/255, green: 199/255, blue: 204/255)).offset(x: 19 * scale, y: 740 * scale)
-            }.frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
+                .padding(.horizontal, Layout.contentLeading * scale)
+                .padding(.top, 15 * scale)
+                .padding(.bottom, 112 * scale)
+                .frame(width: geo.size.width, alignment: .topLeading)
+            }
+            .background(Color.white.ignoresSafeArea())
         }
-        .ignoresSafeArea()
         .task { await marathonViewModel.load() }
         .onChange(of: scenePhase) { phase in
             guard phase == .active else { return }

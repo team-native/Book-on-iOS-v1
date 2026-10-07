@@ -34,12 +34,11 @@ public struct LibraryView: View {
                         content(scale: scale)
                     }
                     .padding(.horizontal, 23 * scale)
-                    .padding(.top, 70 * scale)
+                    .padding(.top, 8 * scale)
                     .padding(.bottom, 110 * scale)
                 }
             }
         }
-        .ignoresSafeArea()
         .task { await reload() }
     }
 

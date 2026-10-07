@@ -72,13 +72,12 @@ public struct NotificationInboxView: View {
                     .ignoresSafeArea()
 
                 header(scale: scale)
-                    .padding(.top, 58 * scale)
+                    .padding(.top, 8 * scale)
 
                 content(scale: scale)
-                .padding(.top, 118 * scale)
+                .padding(.top, 68 * scale)
             }
         }
-        .ignoresSafeArea(edges: .bottom)
         .task { await viewModel.load() }
     }
 

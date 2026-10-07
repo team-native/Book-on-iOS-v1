@@ -69,7 +69,7 @@ public struct AppShellView: View {
                     .frame(height: 89 * scale, alignment: .top)
             }
         }
-        .ignoresSafeArea()
+        .background(Color.white.ignoresSafeArea())
         .onReceive(NotificationCenter.default.publisher(for: .bookOnPushNotificationRoute)) { notification in
             guard let route = notification.object as? PushNotificationRoute else { return }
 
@@ -139,6 +139,8 @@ public struct AppShellView: View {
     }
 
     private func showNotificationRoute(_ route: PushNotificationRoute) {
+        previousDestination = nil
+
         switch route {
         case .loanHistory:
             pendingDestinationAfterDismissal = .loanHistory
@@ -148,9 +150,9 @@ public struct AppShellView: View {
             pendingDestinationAfterDismissal = .newArrivals
         case let .bookDetail(bookId):
             pendingDestinationAfterDismissal = .bookDetail(bookId)
+            previousDestination = .notifications
         }
         destination = nil
-        previousDestination = nil
     }
 
     private func prepareBookDetailDismissal() {
