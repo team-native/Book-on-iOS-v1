@@ -91,11 +91,13 @@ jobs:
 
       - name: Archive
         run: |
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
           xcodebuild archive \
             -workspace Book-on-iOS-V1.xcworkspace \
             -scheme Book-on-iOS-V1 \
             -destination 'generic/platform=iOS' \
             -archivePath $RUNNER_TEMP/Book-on-iOS-V1.xcarchive \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             | xcpretty && exit ${PIPESTATUS[0]}
 
       - name: Verify bundled Firebase configuration
@@ -103,6 +105,9 @@ jobs:
           set -euo pipefail
           APP_PATH=$(find "$RUNNER_TEMP/Book-on-iOS-V1.xcarchive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)
           test -n "$APP_PATH"
+          EXPECTED_BUILD_NUMBER="${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          ACTUAL_BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Info.plist")
+          test "$ACTUAL_BUILD_NUMBER" = "$EXPECTED_BUILD_NUMBER"
           test "$(plutil -convert xml1 -o - Projects/App/Resources/GoogleService-Info.plist)" = "$(plutil -convert xml1 -o - "$APP_PATH/GoogleService-Info.plist")"
 
       - name: Export IPA

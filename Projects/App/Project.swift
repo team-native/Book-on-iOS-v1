@@ -24,6 +24,7 @@ let project = Project.makeModule(
     infoPlist: .extendingDefault(
         with: [
             "API_BASE_URL": "http://ssh.gsmsv.site:33839",
+            "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)",
             "ITSAppUsesNonExemptEncryption": false,
             "UILaunchScreen": [
                 "UIColorName": "",
@@ -41,10 +42,11 @@ let project = Project.makeModule(
     ),
     settings: .settings(
         configurations: [
-            .debug(name: "Debug", settings: [:]),
+            .debug(name: "Debug", settings: ["CURRENT_PROJECT_VERSION": "1"]),
             .release(
                 name: "Release",
                 settings: [
+                    "CURRENT_PROJECT_VERSION": "1",
                     "CODE_SIGN_STYLE": "Manual",
                     "CODE_SIGN_IDENTITY": "Apple Distribution",
                     "DEVELOPMENT_TEAM": "DZ9T8FU5CT",
