@@ -24,6 +24,7 @@ let project = Project.makeModule(
     infoPlist: .extendingDefault(
         with: [
             "API_BASE_URL": "http://ssh.gsmsv.site:33839",
+            "ITSAppUsesNonExemptEncryption": false,
             "UILaunchScreen": [
                 "UIColorName": "",
                 "UIImageName": "",
