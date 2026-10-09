@@ -33,7 +33,7 @@ public struct BookDetailView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 else if let book = viewModel.book {
-                    detail(book, scale: scale)
+                    detail(book, scale: scale, availableHeight: geo.size.height)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 else {
@@ -69,10 +69,10 @@ public struct BookDetailView: View {
         }
     }
 
-    private func detail(_ book: BookDetail, scale: CGFloat) -> some View {
+    private func detail(_ book: BookDetail, scale: CGFloat, availableHeight: CGFloat) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                cover(book, scale: scale)
+                cover(book, scale: scale, availableHeight: availableHeight)
                 VStack(alignment: .leading, spacing: 8 * scale) {
                     Text(book.title)
                         .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 24 * scale))
@@ -89,13 +89,15 @@ public struct BookDetailView: View {
         }
     }
 
-    private func cover(_ book: BookDetail, scale: CGFloat) -> some View {
-        LinearGradient(
+    private func cover(_ book: BookDetail, scale: CGFloat, availableHeight: CGFloat) -> some View {
+        let height = min(420 * scale, max(340 * scale, availableHeight * 0.5))
+
+        return LinearGradient(
             colors: [Color(red: 248 / 255, green: 253 / 255, blue: 234 / 255), .white],
             startPoint: .top,
             endPoint: .bottom
         )
-        .frame(height: 420 * scale)
+        .frame(height: height)
         .overlay {
             BookCoverView(
                 urlString: book.coverImageUrl,
