@@ -144,24 +144,46 @@ final class BookDetailViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isUpdatingFavorite = false
     @Published var errorMessage: String?
+    @Published var favoriteErrorMessage: String?
     let bookId: Int
     private let service: BooksService
-    init(bookId: Int, service: BooksService) { self.bookId = bookId; self.service = service }
+    init(bookId: Int, service: BooksService) {
+        self.bookId = bookId
+        self.service = service
+    }
+
     func load() async {
         guard !isLoading else { return }
-        isLoading = true; errorMessage = nil
-        do { let value = try await service.fetchBookDetail(bookId: bookId); book = value; isFavorite = value.favorite }
-        catch { errorMessage = UserFacingError.message(for: error) }
-        isLoading = false
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            let value = try await service.fetchBookDetail(bookId: bookId)
+            book = value
+            isFavorite = value.favorite
+        } catch {
+            errorMessage = UserFacingError.message(for: error)
+        }
     }
+
     func toggleFavorite() async {
         guard !isUpdatingFavorite else { return }
-        isUpdatingFavorite = true; errorMessage = nil
+        isUpdatingFavorite = true
+        favoriteErrorMessage = nil
+        defer { isUpdatingFavorite = false }
+
         do {
-            let result = isFavorite ? try await service.removeFavorite(bookId: bookId) : try await service.addFavorite(bookId: bookId)
+            let result: FavoriteStatus
+            if isFavorite {
+                result = try await service.removeFavorite(bookId: bookId)
+            } else {
+                result = try await service.addFavorite(bookId: bookId)
+            }
             isFavorite = result.favorite
-        } catch { errorMessage = UserFacingError.message(for: error) }
-        isUpdatingFavorite = false
+        } catch {
+            favoriteErrorMessage = UserFacingError.message(for: error)
+        }
     }
 }
 

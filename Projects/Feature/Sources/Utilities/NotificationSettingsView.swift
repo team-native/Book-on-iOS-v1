@@ -58,7 +58,17 @@ struct NotificationSettingsView: View {
         VStack(spacing: 0) {
             Capsule().fill(Color(red: 225/255, green: 225/255, blue: 230/255)).frame(width: 32, height: 4).padding(.top, 8)
             VStack(alignment: .leading, spacing: 0) {
-                Text("알림 설정").font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 18)).padding(.top, 24)
+                HStack {
+                    Text("알림 설정")
+                        .font(FeatureFontFamily.Pretendard.bold.swiftUIFont(size: 18))
+                    Spacer()
+                    Button("닫기") { dismiss() }
+                        .font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 14))
+                        .foregroundColor(FeatureAsset.Color.textPrimary.swiftUIColor)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .accessibilityLabel("알림 설정 닫기")
+                }
+                .padding(.top, 12)
                 Text("받고 싶은 알림을 선택하세요").font(FeatureFontFamily.Pretendard.medium.swiftUIFont(size: 12)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor).padding(.top, 5)
                 NotificationChannelRow(
                     title: "반납 알림",
