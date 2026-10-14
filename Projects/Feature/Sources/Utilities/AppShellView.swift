@@ -16,7 +16,7 @@ public struct AppShellView: View {
 
         var usesSystemBackButton: Bool {
             switch self {
-            case .recommendations, .bookDetail:
+            case .recommendations:
                 return true
             default:
                 return false
@@ -70,7 +70,6 @@ public struct AppShellView: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     BottomTabBar(selected: selectedTab, scale: scale, action: selectTab)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 89 * scale, alignment: .top)
                         .background(Color.white.ignoresSafeArea(edges: .bottom))
                 }
             }
@@ -125,7 +124,7 @@ public struct AppShellView: View {
         case .recommendations:
             TodayRecommendationsView(onShowBookDetail: showBookDetail)
         case let .bookDetail(bookId):
-            BookDetailView(bookId: bookId, showsBackButton: false)
+            BookDetailView(bookId: bookId, onBack: popRoute)
         }
     }
 

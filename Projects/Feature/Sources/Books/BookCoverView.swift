@@ -5,10 +5,11 @@ struct BookCoverView: View {
     let width: CGFloat
     let height: CGFloat
     var cornerRadius: CGFloat = 8
+    var contentMode: ContentMode = .fill
 
     var body: some View {
         AsyncImage(url: urlString.flatMap(URL.init(string:))) { image in
-            image.resizable().scaledToFill()
+            image.resizable().aspectRatio(contentMode: contentMode)
         } placeholder: {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(Color(red: 241/255, green: 241/255, blue: 244/255))
