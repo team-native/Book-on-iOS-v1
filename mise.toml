@@ -1,2 +1,3 @@
 [tools]
-tuist = "4.152.0"
+tuist = "4.202.0"
+swiftlint = "0.65.1"

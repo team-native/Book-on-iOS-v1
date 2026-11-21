@@ -5,6 +5,8 @@ final class BookOnAppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        guard !ProcessInfo.processInfo.arguments.contains("--ui-testing") else { return true }
+
         PushNotificationCoordinator.shared.configureFirebaseIfAvailable()
         PushNotificationCoordinator.shared.registerForRemoteNotificationsIfAuthorized()
 
