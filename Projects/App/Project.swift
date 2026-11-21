@@ -19,20 +19,12 @@ let project = Project(
             deploymentTargets: .iOS("16.0"),
             infoPlist: .extendingDefault(
                 with: [
-                    "API_BASE_URL": "http://ssh.gsmsv.site:33839",
+                    "API_BASE_URL": "https://bookon.team-native.kr",
                     "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)",
                     "ITSAppUsesNonExemptEncryption": false,
                     "UILaunchScreen": [
                         "UIColorName": "",
                         "UIImageName": "",
-                    ],
-                    "NSAppTransportSecurity": [
-                        "NSExceptionDomains": [
-                            "ssh.gsmsv.site": [
-                                "NSExceptionAllowsInsecureHTTPLoads": true,
-                                "NSIncludesSubdomains": true,
-                            ],
-                        ],
                     ],
                 ]
             ),
