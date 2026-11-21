@@ -41,7 +41,7 @@ public struct SearchView: View {
         else if let error = viewModel.errorMessage { VStack(spacing: 12) { Text(error); Button("재시도", action: performSearch) }.frame(width: 344 * scale).padding(.top, 120 * scale) }
         else if didSearch && !viewModel.books.isEmpty {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16 * scale) {
+                LazyVStack(alignment: .leading, spacing: 16 * scale) {
                     Text("‘\(query)’ 검색 결과 \(viewModel.books.count)건").font(FeatureFontFamily.Pretendard.semiBold.swiftUIFont(size: 12 * scale)).foregroundColor(FeatureAsset.Color.textDescription.swiftUIColor)
                     ForEach(viewModel.books) { book in
                         SearchBookRow(book: book, scale: scale) { onShowBookDetail(book.bookId) }

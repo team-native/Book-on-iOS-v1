@@ -1,15 +1,37 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let project = Project.makeModule(
+let project = Project(
     name: "Feature",
-    product: .framework,
     organizationName: "Book-on-iOS",
-    deploymentTargets: .iOS("16.0"),
-    dependencies: [
-        .project(target: "Service", path: .relativeToRoot("Projects/Service")),
+    targets: [
+        .target(
+            name: "Feature",
+            destinations: .iOS,
+            product: .framework,
+            bundleId: "com.bookonios.Feature",
+            deploymentTargets: .iOS("16.0"),
+            sources: ["Sources/**"],
+            resources: ["Resources/**"],
+            dependencies: [
+                .project(target: "Service", path: .relativeToRoot("Projects/Service")),
+            ]
+        ),
+        .target(
+            name: "FeatureTests",
+            destinations: .iOS,
+            product: .unitTests,
+            bundleId: "com.bookonios.FeatureTests",
+            deploymentTargets: .iOS("17.0"),
+            sources: ["Tests/**"],
+            dependencies: [.target(name: "Feature")]
+        ),
     ],
-    sources: ["Sources/**"],
-    resources: ["Resources/**"],
-    infoPlist: .default
+    schemes: [
+        .scheme(
+            name: "Feature",
+            shared: true,
+            testAction: .targets([.testableTarget(target: "FeatureTests")])
+        ),
+    ]
 )

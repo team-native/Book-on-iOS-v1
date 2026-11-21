@@ -12,7 +12,7 @@ concurrency:
 jobs:
   build:
     name: Build
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - name: Checkout
@@ -38,11 +38,41 @@ jobs:
       - name: Generate project
         run: tuist generate --no-open
 
-      - name: Build
+      - name: SwiftLint
+        run: swiftlint lint --strict --baseline .swiftlint-baseline.json
+
+      - name: Build app
         run: |
           xcodebuild build \
             -workspace Book-on-iOS-V1.xcworkspace \
             -scheme Book-on-iOS-V1 \
             -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Test
+        run: |
+          xcodebuild test \
+            -workspace Book-on-iOS-V1.xcworkspace \
+            -scheme Service \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Test push notification routing
+        run: |
+          xcodebuild test \
+            -workspace Book-on-iOS-V1.xcworkspace \
+            -scheme Feature \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Test app UI
+        run: |
+          xcodebuild test \
+            -workspace Book-on-iOS-V1.xcworkspace \
+            -scheme Book-on-iOS-V1-UI \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty && exit ${PIPESTATUS[0]}

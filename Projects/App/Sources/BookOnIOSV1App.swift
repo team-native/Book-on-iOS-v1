@@ -29,6 +29,10 @@ struct RootView: View {
     private let tokenStore = AuthTokenStore()
     private let loginService = LoginService()
 
+    private var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("--ui-testing")
+    }
+
     var body: some View {
         ZStack {
             if !isSplashFinished {
@@ -66,6 +70,11 @@ struct RootView: View {
         // 텍스트도 기기 다크 모드에서 흰색으로 바뀌지 않게 기본 색을 명시한다.
         .foregroundColor(.black)
         .task {
+            if isUITesting {
+                isSplashFinished = true
+                authenticationState = .signedOut
+                return
+            }
             restoreAuthenticationState()
         }
         .onChange(of: isSplashFinished) { _ in

@@ -1,0 +1,12 @@
+included:
+  - Projects/App/Sources
+  - Projects/App/UITests
+  - Projects/Feature/Sources
+  - Projects/Service/Sources
+  - Projects/Service/Tests
+  - Projects/Feature/Tests
+
+excluded:
+  - Projects/App/Derived
+  - Projects/Feature/Derived
+  - Projects/Service/Derived
