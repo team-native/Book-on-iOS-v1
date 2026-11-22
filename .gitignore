@@ -15,3 +15,10 @@ Tuist/.build/
 
 # Firebase project configuration (kept local per environment)
 GoogleService-Info.plist
+
+# Local signing credentials and certificates
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest

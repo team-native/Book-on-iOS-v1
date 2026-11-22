@@ -42,7 +42,7 @@ FCM은 발송 계층이며 iOS 기기 전달은 APNs가 담당한다. 따라서 
 1. Firebase Console에서 올바른 프로젝트에 iOS 앱을 등록하고, 해당 Bundle ID의 `GoogleService-Info.plist`를 내려받는다. 이 저장소는 파일을 환경별 로컬 설정으로 취급해 `.gitignore`에서 제외하므로, CI나 다른 개발 환경에서도 빌드하려면 파일을 각 환경에 안전하게 전달해야 한다.
 2. Apple Developer에서 APNs 인증 키(`.p8`)를 만들고 Key ID와 Team ID를 확인한다. App ID에서 **Push Notifications**를 활성화하고 프로비저닝 프로파일을 갱신한다.
 3. Firebase Console의 **Project settings → Cloud Messaging → Apple app configuration**에 `.p8`, Key ID, Team ID를 등록한다.
-4. 개발 빌드는 `aps-environment = development`와 일치하는 개발 서명으로 테스트한다. 현재 앱 entitlements 파일은 `development`로 고정되어 있으므로, 배포 전에는 Release로 서명된 앱의 실제 entitlement가 `production`인지 확인하고 필요하면 Tuist 설정을 구성별로 분리한다.
+4. `aps-environment`는 entitlements 파일에 고정하지 않는다. Xcode가 선택된 프로비저닝 프로파일에 맞춰 값을 설정한다. 개발 빌드는 Development 프로파일로, App Store 배포 빌드는 Distribution 프로파일로 서명하고 결과 앱의 실제 entitlement를 확인한다.
 
 Firebase의 iOS 설정 파일은 앱/프로젝트 식별자를 담는 클라이언트 설정이며, APNs `.p8`와 Firebase Admin SDK 자격 증명은 서버 비밀값이다. `.p8`이나 Admin 자격 증명은 앱 번들, 저장소, 로그에 넣지 않는다.
 
