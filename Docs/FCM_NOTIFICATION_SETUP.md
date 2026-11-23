@@ -15,7 +15,7 @@ FCM은 발송 계층이며 iOS 기기 전달은 APNs가 담당한다. 따라서 
 
 ## 앱에 연결된 API 계약
 
-현재 iOS 서비스가 사용하는 요청은 다음과 같다. 서버 배포 환경에서도 이 경로와 본문·응답 형식이 유지되는지 확인해야 한다.
+현재 iOS 서비스가 사용하는 요청은 다음과 같다. 확인한 백엔드 계약과 iOS 구현은 일치한다. 다만 인증을 포함한 배포 환경의 실요청 및 푸시 전달까지 검증된 것은 아니다.
 
 | 목적 | API | 요청 본문 |
 | --- | --- | --- |
@@ -25,6 +25,8 @@ FCM은 발송 계층이며 iOS 기기 전달은 APNs가 담당한다. 따라서 
 | 읽음 처리 | `PATCH /me/notifications/{id}/read` | 없음 |
 
 토큰 등록 응답은 `data.registered`, 폐기 응답은 `data.unregistered`, 읽음 처리 응답은 `data.id`와 `data.isRead`를 사용한다. 알림함 목록은 `data.notifications`와 `data.pagination`을 사용하며, 각 알림은 `id`, `type`, `title`, `body`, `isRead`, `createdAt`, `deepLink`를 포함한다.
+
+백엔드 확인에 따르면 Read365 연동을 정상 완료한 사용자는 FCM 토큰 등록 시 `dlsUserKey`를 별도로 보낼 필요가 없다. 앱은 `POST /auth/read365/session`으로 Read365 세션을 등록하고, FCM 등록 요청에는 `token`과 `platform`만 보낸다. 이 연동 흐름의 실환경 대출 알림까지는 별도 E2E 검증이 필요하다.
 
 푸시 payload의 `type` 값 `loan_due`, `notice`, `new_book`은 각각 대출 내역, 공지, 도서 상세 화면으로 연결한다. `new_book`은 payload의 `bookId`를 사용하며, 알림함은 저장된 `/books/{bookId}` `deepLink`를 사용한다. 도서 ID가 없는 구형 신간 알림은 신간 목록으로 연결한다.
 
@@ -51,7 +53,9 @@ Firebase의 iOS 설정 파일은 앱/프로젝트 식별자를 담는 클라이�
 - 백엔드는 이 앱과 같은 Firebase 프로젝트를 사용하고 Firebase Admin SDK 또는 FCM HTTP v1으로 이벤트별 알림을 발송해야 한다. 발송 권한은 서버의 비밀 저장소에만 둔다.
 - 앱은 로그인한 사용자의 토큰을 `POST /me/fcm-token`으로 등록하고 `DELETE /me/fcm-token`으로 폐기한다. 백엔드는 여러 기기의 토큰을 사용자별로 관리하고, 만료/무효 토큰을 제거해야 한다.
 - 알림 이력 API는 아래 계약을 사용하며 `type` 값은 `loan_due`, `notice`, `new_book`이다. 푸시 payload와 저장된 알림의 `deepLink`가 같은 목적지를 가리키는지 확인한다.
-- 현재 앱 기본 API 주소는 HTTP이며 FCM 토큰 등록 API는 인증이 필요하다. HTTPS 전환 전에는 실제 계정 토큰이나 운영 알림을 이 경로로 보내지 않는다. TLS 엔드포인트 준비는 [이슈 #202](https://github.com/team-native/Book-on-iOS-v1/issues/202)에서 추적한다.
+- 앱의 기본 API 주소는 `https://bookon.team-native.kr`이며, HTTPS `/life`와 `/books/categories`에서 200 응답 및 TLS 인증서 검증을 확인했다. 백엔드 담당자는 과거 확인에 사용한 `ssh.gsmsv.site:33839`가 Book-on 서버가 아니라고 확인했다.
+- `http://bookon.team-native.kr/life`도 200 응답한 적이 있으나, HTTP 차단 또는 HTTPS 리다이렉트 정책은 확인되지 않았다. 앱은 HTTPS 기본 주소를 사용한다. HTTP 강제 정책이 필요하면 백엔드에서 별도로 설정·확인해야 한다.
+- 실제 FCM 발송·수신은 아직 검증되지 않았다. 앱에서 로그인 후 토큰 등록을 확인한 뒤 백엔드 담당자가 테스트 푸시를 보내야 실환경 전달을 확인할 수 있다.
 
 ### 검증 순서
 
